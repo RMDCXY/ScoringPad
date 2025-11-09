@@ -1,0 +1,344 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  --border-color: #eeeeee;
+  --notice-bg: #fff8e1;
+  --notice-border: #ffc107;
+  --shadow: 0 4px 10px rgba(0,0,0,0.1);
+  --btn-blue: #2196F3;
+  --btn-blue-hover: #1976D2;
+  --btn-purple: #9c27b0;
+  --btn-purple-hover: #7b1fa2;
+  --btn-green: #4CAF50;
+  --btn-green-hover: #45a049;
+  --btn-yellow: #FFC107;
+  --btn-yellow-hover: #FFB300;
+  --score-color: #e91e63;
+  --icon-bg: #f5f5f5;
+  --icon-bg-hover: #e0e0e0;
+}
+
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --text-color: #e0e0e0;
+  --card-bg: #1e1e1e;
+  --border-color: #333333;
+  --notice-bg: #2c281a;
+  --notice-border: #b08800;
+  --shadow: 0 4px 10px rgba(0,0,0,0.3);
+  --btn-blue: #1976D2;
+  --btn-blue-hover: #1565C0;
+  --btn-purple: #7b1fa2;
+  --btn-purple-hover: #6a1b9a;
+  --btn-green: #45a049;
+  --btn-green-hover: #388e3c;
+  --btn-yellow: #FFB300;
+  --btn-yellow-hover: #FFA000;
+  --score-color: #ff6b6b;
+  --icon-bg: #2d2d2d;
+  --icon-bg-hover: #3d3d3d;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Microsoft YaHei", sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  padding: 20px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.page {
+  display: block;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* 深浅色切换按钮 */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+
+/* 登录页面 */
+.login-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  background: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  color: var(--text-color);
+}
+
+.login-container h2 {
+  margin-bottom: 20px;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  font-size: 16px;
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+.login-container label {
+  display: block;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--btn-green);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.login-container button:hover {
+  background-color: var(--btn-green-hover);
+}
+
+/* 管理页面 */
+#dashboard-page,
+#leaderboard-page {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+#dashboard-page h1,
+#leaderboard-page h1 {
+  text-align: center;
+  margin: 20px 0;
+  color: var(--text-color);
+}
+
+/* 提示框 */
+.notice {
+  position: relative;
+  background-color: var(--notice-bg);
+  padding: 15px 35px 15px 15px;
+  border-left: 5px solid var(--notice-border);
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-color);
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--text-color);
+  opacity: 0.7;
+  cursor: pointer;
+  user-select: none;
+}
+
+.close-btn:hover {
+  opacity: 1;
+}
+
+/* 按钮网格 2x2 */
+.button-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.btn-blue,
+.btn-purple,
+.btn-green,
+.btn-yellow {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-yellow{
+  width: 100%;
+  text-align: center;
+}
+
+.btn-blue {
+  background-color: var(--btn-blue);
+}
+.btn-blue:hover {
+  background-color: var(--btn-blue-hover);
+}
+
+.btn-purple {
+  background-color: var(--btn-purple);
+}
+.btn-purple:hover {
+  background-color: var(--btn-purple-hover);
+}
+
+.btn-green {
+  background-color: var(--btn-green);
+}
+.btn-green:hover {
+  background-color: var(--btn-green-hover);
+}
+
+.btn-yellow {
+  background-color: var(--btn-yellow);
+}
+.btn-yellow:hover {
+  background-color: var(--btn-yellow-hover);
+}
+
+/* 学生列表 */
+.student-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.student-name {
+  flex: 1;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.student-score {
+  width: 60px;
+  text-align: center;
+  font-size: 18px;
+  color: var(--score-color);
+  font-weight: bold;
+}
+
+.student-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.student-actions button {
+  background: var(--icon-bg);
+  border: none;
+  border-radius: 5px;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.student-actions button:hover {
+  background: var(--icon-bg-hover);
+}
+
+/* Emoji 图标 */
+.add-btn::before { content: "+"; }
+.minus-btn::before { content: "-"; }
+.reset-btn::before { content: "↻"; }
+.delete-btn::before { content: "🗑️"; }
+
+/* 排行榜页面 */
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.leaderboard-header .btn-blue,
+.leaderboard-header .btn-yellow {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.leaderboard-header .btn-blue {
+  background: var(--btn-blue);
+  color: white;
+}
+.leaderboard-header .btn-blue:hover {
+  background: var(--btn-blue-hover);
+}
+
+.leaderboard-header .btn-yellow {
+  background: var(--btn-yellow);
+}
+.leaderboard-header .btn-yellow:hover {
+  background: var(--btn-yellow-hover);
+}
+
+.rank-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 18px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rank {
+  font-weight: bold;
+  width: 40px;
+}
+
+.rank-name {
+  flex: 1;
+}
+
+.rank-score {
+  color: var(--score-color);
+  font-weight: bold;
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scoring Pad</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- 引入 html2canvas 用于截屏 -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <!-- 深浅色切换按钮（通用） -->
+  <button id="theme-toggle" class="theme-toggle"></button>
+  
+  <!-- 登录页面 -->
+  <div id="login-page" class="page">
+    <div class="login-container">
+      <h2>Scoring Pad</h2>
+      <input type="text" id="username" placeholder="用户名" />
+      <input type="password" id="password" placeholder="密码" />
+      <label>
+        <input type="checkbox" id="auto-login" /> 自动登录
+      </label>
+      <button id="login-btn">登录</button>
+    </div>
+  </div>
+
+  <!-- 管理页面 -->
+  <div id="dashboard-page" class="page hidden">
+    <h1>😄欢迎使用Scoring Pad！</h1>
+
+    <div id="notice-box" class="notice">
+      <span class="close-btn" id="close-notice">&times;</span>
+      ✨欢迎使用Scoring Pad记分模板！🎉<br />
+      ⚠️由于技术限制原因，记分使用本地存储，不存储在云端，所以请千万不要清理浏览器数据！千万不要清理浏览器数据！否则计分数据会被全部清空！！！<br />
+      ℹ如果您在更换设备时需要同步数据，可以通过下方的“导入/导出CSV”选项保存记分数据为文件，并在多设备间发送以实现数据同步。
+    </div>
+
+    <div class="button-grid">
+      <button id="add-student-btn" class="btn-blue">添加学生</button>
+      <button id="batch-add-btn" class="btn-purple">批量添加学生</button>
+      <button id="import-csv-btn" class="btn-green">导入 CSV</button>
+      <button id="export-csv-btn" class="btn-green">导出 CSV</button>
+    </div>
+
+    <button id="leaderboard-btn" class="btn-yellow">排行榜</button>
+
+    <div id="students-list"></div>
+  </div>
+
+  <!-- 排行榜页面 -->
+  <div id="leaderboard-page" class="page hidden">
+    <div class="leaderboard-header">
+      <button id="back-btn" class="btn-blue">← 返回</button>
+      <button id="screenshot-btn" class="btn-purple">📷 截屏</button>
+    </div>
+    <h1>🏆 计分排行榜</h1>
+    <div id="ranked-list"></div>
+  </div>
+
+  <!-- 隐藏的文件输入用于导入 -->
+  <input type="file" id="file-input" accept=".csv" style="display:none" />
+
+  <script src="script.js"></script>
+</body>
+</html>
