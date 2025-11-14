@@ -1,5 +1,7 @@
 // DOM 元素
 const themeToggle = document.getElementById('theme-toggle');
+const searchToggle = document.getElementById('search-toggle');
+const moreToggle = document.getElementById('more-toggle');
 const loginPage = document.getElementById('login-page');
 const dashboardPage = document.getElementById('dashboard-page');
 const leaderboardPage = document.getElementById('leaderboard-page');
@@ -65,6 +67,18 @@ themeToggle.addEventListener('click', () => {
   setTheme(current === 'dark' ? 'light' : 'dark');
 });
 
+if (searchToggle) {
+  searchToggle.addEventListener('click', openSearch);
+}
+
+// 更多按钮事件绑定
+if (moreToggle) {
+  moreToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMoreMenu();
+  });
+}
+
 // 初始化主题
 setTheme(getPreferredTheme());
 
@@ -118,6 +132,175 @@ function showLeaderboardPage() {
   renderLeaderboard();
 }
 
+// ========== 搜索功能 ==========
+let _searchBarEl = null;
+
+function openSearch() {
+  // 隐藏顶栏按钮（主题、搜索、更多）
+  if (themeToggle) themeToggle.style.display = 'none';
+  if (searchToggle) searchToggle.style.display = 'none';
+  if (moreToggle) moreToggle.style.display = 'none';
+
+  // 已经打开则聚焦输入
+  if (_searchBarEl) {
+    const inp = document.getElementById('global-search');
+    if (inp) inp.focus();
+    return;
+  }
+
+  // 创建搜索条
+  const bar = document.createElement('div');
+  bar.id = 'search-bar';
+
+  const input = document.createElement('input');
+  input.id = 'global-search';
+  input.className = 'search-input';
+  input.placeholder = '搜索学生姓名...';
+  input.autocomplete = 'off';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'search-close-btn';
+  closeBtn.type = 'button';
+  closeBtn.innerText = '❌';
+
+  bar.appendChild(input);
+  bar.appendChild(closeBtn);
+  document.body.appendChild(bar);
+  _searchBarEl = bar;
+
+  // 事件
+  input.addEventListener('input', (e) => {
+    performSearch(e.target.value);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSearch();
+  });
+  closeBtn.addEventListener('click', closeSearch);
+
+  // 自动聚焦
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeSearch() {
+  if (_searchBarEl) {
+    _searchBarEl.remove();
+    _searchBarEl = null;
+  }
+  if (themeToggle) themeToggle.style.display = '';
+  if (searchToggle) searchToggle.style.display = '';
+  if (moreToggle) moreToggle.style.display = '';
+  // 恢复全量渲染
+  if (!dashboardPage.classList.contains('hidden')) {
+    renderStudents();
+  }
+  if (!leaderboardPage.classList.contains('hidden')) {
+    renderLeaderboard();
+  }
+}
+
+function performSearch(query) {
+  const q = (query || '').trim();
+  if (!dashboardPage.classList.contains('hidden')) {
+    renderStudents(q);
+  } else if (!leaderboardPage.classList.contains('hidden')) {
+    renderLeaderboard(q);
+  }
+}
+
+// ========== 更多菜单功能 ==========
+let _moreMenuEl = null;
+
+function createMoreMenu() {
+  if (_moreMenuEl) return _moreMenuEl;
+  const menu = document.createElement('div');
+  menu.id = 'more-menu';
+
+  const clearItem = document.createElement('div');
+  clearItem.className = 'more-item';
+  clearItem.innerText = '🗑️  清空数据';
+  clearItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleClearData();
+  });
+
+  const aboutItem = document.createElement('div');
+  aboutItem.className = 'more-item';
+  aboutItem.innerText = 'ℹ  关于';
+  aboutItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleAbout();
+  });
+
+  menu.appendChild(clearItem);
+  menu.appendChild(aboutItem);
+  document.body.appendChild(menu);
+  _moreMenuEl = menu;
+  return menu;
+}
+
+function toggleMoreMenu() {
+  if (_moreMenuEl) {
+    closeMoreMenu();
+    return;
+  }
+  const menu = createMoreMenu();
+  // 保证位置靠近更多按钮（样式也已设置），并监听外部点击关闭
+  setTimeout(() => document.addEventListener('click', _docClickCloseMore), 0);
+}
+
+function closeMoreMenu() {
+  if (_moreMenuEl) {
+    _moreMenuEl.remove();
+    _moreMenuEl = null;
+    document.removeEventListener('click', _docClickCloseMore);
+  }
+}
+
+function _docClickCloseMore(ev) {
+  if (!_moreMenuEl) return;
+  const target = ev.target;
+  if (moreToggle && (moreToggle === target || moreToggle.contains(target))) return;
+  if (_moreMenuEl.contains(target)) return;
+  closeMoreMenu();
+}
+
+function handleAbout() {
+  closeMoreMenu();
+  const aboutText = config['about-info'] || config.about || 'Scoring Pad - 本地计分管理系统。';
+  alert(aboutText);
+}
+
+function generateConfirmCode() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let s = '';
+  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+
+async function handleClearData() {
+  closeMoreMenu();
+  const ok = confirm('⚠确认清除所有学生记分数据吗？清除之后将无法恢复！');
+  if (!ok) return;
+
+  const code = generateConfirmCode();
+  const input = prompt(`⌨请完整重复输入【${code}】以确认删除`);
+  if (input === null) return; // 取消
+  if (input !== code) {
+    alert('❌输入内容不匹配，请重新操作！');
+    return;
+  }
+
+  const finalOk = confirm('☢最后一次确认！确定要完全清除学生数据吗？清除后将永远不能恢复，永远！数据无价，谨慎操作！\nℹ 建议您清除前使用导出CSV功能进行备份，避免出现不必要的损失。');
+  if (!finalOk) return;
+
+  // 执行清空
+  saveStudents([]);
+  // 如果当前在页面，刷新视图
+  if (!dashboardPage.classList.contains('hidden')) renderStudents();
+  if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
+  alert('✔ 清除完成！');
+}
+
 // ========== 数据存储 ==========
 function loadStudents() {
   const data = localStorage.getItem('students');
@@ -129,11 +312,16 @@ function saveStudents(students) {
 }
 
 // ========== 渲染 ==========
-function renderStudents() {
-  const students = loadStudents();
+function renderStudents(filter) {
+  const all = loadStudents();
+  const q = filter ? filter.toLowerCase() : '';
+  const list = all
+    .map((s, i) => ({ s, i }))
+    .filter(item => (q ? item.s.name.toLowerCase().includes(q) : true));
+
   studentsList.innerHTML = '';
 
-  students.forEach((student, index) => {
+  list.forEach(({ s: student, i: originalIndex }) => {
     const div = document.createElement('div');
     div.className = 'student-item';
 
@@ -151,22 +339,22 @@ function renderStudents() {
     const addBtn = document.createElement('button');
     addBtn.className = 'add-btn';
     addBtn.title = '加分';
-    addBtn.onclick = () => handleAddScore(index);
+    addBtn.onclick = () => handleAddScore(originalIndex);
 
     const minusBtn = document.createElement('button');
     minusBtn.className = 'minus-btn';
     minusBtn.title = '扣分';
-    minusBtn.onclick = () => handleMinusScore(index);
+    minusBtn.onclick = () => handleMinusScore(originalIndex);
 
     const resetBtn = document.createElement('button');
     resetBtn.className = 'reset-btn';
     resetBtn.title = '清零';
-    resetBtn.onclick = () => handleResetScore(index);
+    resetBtn.onclick = () => handleResetScore(originalIndex);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
     deleteBtn.title = '删除学生';
-    deleteBtn.onclick = () => handleDeleteStudent(index);
+    deleteBtn.onclick = () => handleDeleteStudent(originalIndex);
 
     actionsDiv.appendChild(addBtn);
     actionsDiv.appendChild(minusBtn);
@@ -182,18 +370,25 @@ function renderStudents() {
 }
 
 function renderLeaderboard() {
-  const students = loadStudents();
-  // 按分数从高到低排序，相同分数按添加顺序（稳定排序）
-  const sorted = [...students].sort((a, b) => b.score - a.score);
+  const all = loadStudents();
+  const q = arguments.length > 0 && arguments[0] ? String(arguments[0]).toLowerCase() : '';
+
+  // 包含原始索引以便稳定排序和可能的扩展
+  const mapped = all.map((s, i) => ({ s, i }));
+  // 按分数降序排序（稳定）
+  const sorted = mapped.sort((a, b) => b.s.score - a.s.score);
+  const filtered = q ? sorted.filter(item => item.s.name.toLowerCase().includes(q)) : sorted;
+
   rankedList.innerHTML = '';
 
-  sorted.forEach((student, i) => {
+  filtered.forEach((item, idx) => {
+    const student = item.s;
     const div = document.createElement('div');
     div.className = 'rank-item';
 
     const rankSpan = document.createElement('span');
     rankSpan.className = 'rank';
-    rankSpan.textContent = (i + 1) + '.';
+    rankSpan.textContent = (idx + 1) + '.';
 
     const nameSpan = document.createElement('span');
     nameSpan.className = 'rank-name';
@@ -438,7 +633,7 @@ window.addEventListener('load', async () => {
   await loadConfig();
   // 将自定义标题应用到浏览器标签页
   if (config.title) {
-    document.title = `${config.title}`;
+    document.title = `欢迎使用${config.title}！`;
   }
   // 登录页面显示控制
   if (config.login) {

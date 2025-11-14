@@ -81,6 +81,80 @@ body {
   box-shadow: var(--shadow);
 }
 
+/* 搜索按钮放在深色切换按钮左侧 */
+#search-toggle {
+  right: 70px; /* theme-toggle right 20px + width 40px + gap 10px */
+}
+
+/* 更多按钮放在搜索与主题切换之间 */
+#more-toggle {
+  right: 45px; /* between 70 and 20 */
+}
+
+/* 搜索条样式（在激活搜索时显示） */
+#search-bar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 380px;
+  z-index: 200;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 更多菜单（默认隐藏，通过 JS 动态插入/展示） */
+#more-menu {
+  position: fixed;
+  top: 70px; /* 在按钮下方 */
+  right: 45px; /* 与更多按钮对齐 */
+  background: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 300;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+#more-menu .more-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#more-menu .more-item:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 14px;
+  outline: none;
+  box-shadow: var(--shadow);
+}
+
+.search-close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 /* 登录页面 */
 .login-container {
   max-width: 400px;

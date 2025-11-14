@@ -3,5 +3,6 @@
     "username":"admin",
     "password":"1q2w3e4r",
     "notice":true,
-    "title":"Scoring Pad"
+    "title":"Scoring Pad",
+    "about-info":"本项目基于Scoring Pad构建。Scoring Pad，每个人都能拥有自己的记分系统。\nGithub repo:https://github.com/RMDCXY/ScoringPad"
 }
