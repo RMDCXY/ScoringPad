@@ -1,6 +1,6 @@
 <h1 align="center">Scoring Pad</h1>
 
-> 快速配置属于你的记分系统
+> 每个人都能拥有自己的记分系统
 
 <img alt="Scoring Pad Demo Screeenshot" src="https://github.com/user-attachments/assets/ee489f90-0a79-4884-8849-279674c658e1" />
 
