@@ -10,8 +10,9 @@
 </head>
 <body>
   <!-- 深浅色切换与搜索按钮（通用） -->
-  <button id="search-toggle" class="theme-toggle">🔍</button>
   <button id="more-toggle" class="theme-toggle">➕</button>
+  <button id="search-toggle" class="theme-toggle">🔍</button>
+  <button id="class-toggle" class="theme-toggle">🏫</button>
   <button id="theme-toggle" class="theme-toggle"></button>
   
   <!-- 登录页面 -->
@@ -29,23 +30,23 @@
 
   <!-- 管理页面 -->
   <div id="dashboard-page" class="page hidden">
-    <h1>😄欢迎使用Scoring Pad！</h1>
+    <h1>欢迎使用Scoring Pad！</h1>
 
     <div id="notice-box" class="notice">
       <span class="close-btn" id="close-notice">&times;</span>
       ✨欢迎使用Scoring Pad记分模板！🎉<br />
       ⚠️由于技术限制原因，记分使用本地存储，不存储在云端，所以请千万不要清理浏览器数据！千万不要清理浏览器数据！否则计分数据会被全部清空！！！<br />
-      ℹ如果您在更换设备时需要同步数据，可以通过下方的“导入/导出CSV”选项保存记分数据为文件，并在多设备间发送以实现数据同步。
+      ⓘ如果您在更换设备时需要同步数据，可以通过下方的“导入/导出CSV”选项保存记分数据为文件，并在多设备间发送以实现数据同步。
     </div>
 
     <div class="button-grid">
-      <button id="add-student-btn" class="btn-blue">添加学生</button>
-      <button id="batch-add-btn" class="btn-purple">批量添加学生</button>
-      <button id="import-csv-btn" class="btn-green">导入 CSV</button>
-      <button id="export-csv-btn" class="btn-green">导出 CSV</button>
+      <button id="add-student-btn" class="btn-blue">🧑 添加学生</button>
+      <button id="batch-add-btn" class="btn-purple">➕ 批量添加学生</button>
+      <button id="import-csv-btn" class="btn-green">📁 导入CSV</button>
+      <button id="export-csv-btn" class="btn-green">📄 导出CSV</button>
     </div>
 
-    <button id="leaderboard-btn" class="btn-yellow">排行榜</button>
+    <button id="leaderboard-btn" class="btn-yellow">🏆排行榜</button>
 
     <div id="students-list"></div>
   </div>
@@ -56,7 +57,7 @@
       <button id="back-btn" class="btn-blue">← 返回</button>
       <button id="screenshot-btn" class="btn-purple">📷 截屏</button>
     </div>
-    <h1>🏆 计分排行榜</h1>
+    <h1>🏆 排行榜</h1>
     <div id="ranked-list"></div>
   </div>
 

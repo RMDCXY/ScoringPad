@@ -81,14 +81,19 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* 搜索按钮放在深色切换按钮左侧 */
+/* 搜索按钮放在更多按钮与班级之间 */
 #search-toggle {
-  right: 70px; /* theme-toggle right 20px + width 40px + gap 10px */
+  right: 70px;
 }
 
-/* 更多按钮放在搜索与主题切换之间 */
+/* 更多按钮放在最左侧 */
 #more-toggle {
-  right: 45px; /* between 70 and 20 */
+  right: 95px;
+}
+
+/* 班级按钮放在搜索与主题切换之间 */
+#class-toggle {
+  right: 45px;
 }
 
 /* 搜索条样式（在激活搜索时显示） */
@@ -107,7 +112,7 @@ body {
 #more-menu {
   position: fixed;
   top: 70px; /* 在按钮下方 */
-  right: 45px; /* 与更多按钮对齐 */
+  right: 100px; /* 与更多按钮对齐 */
   background: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--border-color);
@@ -131,6 +136,58 @@ body {
   background: rgba(0,0,0,0.04);
 }
 
+#more-menu {
+  will-change: transform, opacity;
+  animation: slideFadeDown 180ms ease-out both;
+}
+
+/* 班级菜单 */
+#class-menu {
+  position: fixed;
+  top: 70px;
+  right: 50px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 300;
+  min-width: 140px;
+  overflow: hidden;
+  animation: slideFadeDown 180ms ease-out both;
+}
+
+.class-menu-title {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text-color);
+  opacity: 0.7;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.class-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.class-item:last-child {
+  border-bottom: none;
+}
+
+.class-item:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.class-item-active {
+  background: rgba(33, 150, 243, 0.2);
+  color: var(--btn-blue);
+  font-weight: bold;
+}
+
 .search-input {
   flex: 1;
   padding: 10px 12px;
@@ -141,6 +198,32 @@ body {
   font-size: 14px;
   outline: none;
   box-shadow: var(--shadow);
+}
+
+@keyframes slideFadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes menuFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.menu-fade-out {
+  animation: menuFadeOut 150ms ease-in forwards !important;
 }
 
 .search-close-btn {
@@ -233,6 +316,8 @@ body {
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-color);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .close-btn {

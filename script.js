@@ -2,6 +2,7 @@
 const themeToggle = document.getElementById('theme-toggle');
 const searchToggle = document.getElementById('search-toggle');
 const moreToggle = document.getElementById('more-toggle');
+const classToggle = document.getElementById('class-toggle');
 const loginPage = document.getElementById('login-page');
 const dashboardPage = document.getElementById('dashboard-page');
 const leaderboardPage = document.getElementById('leaderboard-page');
@@ -29,6 +30,10 @@ let config = {
   password: '1q2w3e4r',
   notice: true
 };
+
+// ========== 班级管理 ==========
+let currentClass = '班级1';
+const CLASSES = ['班级1', '班级2', '班级3', '班级4'];
 
 // 读取 scoringpad.json 配置
 async function loadConfig() {
@@ -76,6 +81,14 @@ if (moreToggle) {
   moreToggle.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleMoreMenu();
+  });
+}
+
+// 班级按钮事件绑定
+if (classToggle) {
+  classToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openClassMenu();
   });
 }
 
@@ -136,10 +149,11 @@ function showLeaderboardPage() {
 let _searchBarEl = null;
 
 function openSearch() {
-  // 隐藏顶栏按钮（主题、搜索、更多）
+  // 隐藏顶栏按钮（主题、搜索、更多、班级）
   if (themeToggle) themeToggle.style.display = 'none';
   if (searchToggle) searchToggle.style.display = 'none';
   if (moreToggle) moreToggle.style.display = 'none';
+  if (classToggle) classToggle.style.display = 'none';
 
   // 已经打开则聚焦输入
   if (_searchBarEl) {
@@ -189,6 +203,7 @@ function closeSearch() {
   if (themeToggle) themeToggle.style.display = '';
   if (searchToggle) searchToggle.style.display = '';
   if (moreToggle) moreToggle.style.display = '';
+  if (classToggle) classToggle.style.display = '';
   // 恢复全量渲染
   if (!dashboardPage.classList.contains('hidden')) {
     renderStudents();
@@ -217,21 +232,30 @@ function createMoreMenu() {
 
   const clearItem = document.createElement('div');
   clearItem.className = 'more-item';
-  clearItem.innerText = '🗑️  清空数据';
+  clearItem.innerText = '🗑️ 清空数据';
   clearItem.addEventListener('click', (e) => {
     e.stopPropagation();
     handleClearData();
   });
 
+  const zeroItem = document.createElement('div');
+  zeroItem.className = 'more-item';
+  zeroItem.innerText = ' ↻ 一键清零';
+  zeroItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleResetAllScores();
+  });
+
   const aboutItem = document.createElement('div');
   aboutItem.className = 'more-item';
-  aboutItem.innerText = 'ℹ  关于';
+  aboutItem.innerText = 'ⓘ 关于';
   aboutItem.addEventListener('click', (e) => {
     e.stopPropagation();
     handleAbout();
   });
 
   menu.appendChild(clearItem);
+  menu.appendChild(zeroItem);
   menu.appendChild(aboutItem);
   document.body.appendChild(menu);
   _moreMenuEl = menu;
@@ -239,6 +263,10 @@ function createMoreMenu() {
 }
 
 function toggleMoreMenu() {
+  // 打开更多菜单时自动关闭班级菜单，避免重叠
+  if (_classMenuEl) {
+    closeClassMenu();
+  }
   if (_moreMenuEl) {
     closeMoreMenu();
     return;
@@ -250,9 +278,14 @@ function toggleMoreMenu() {
 
 function closeMoreMenu() {
   if (_moreMenuEl) {
-    _moreMenuEl.remove();
-    _moreMenuEl = null;
-    document.removeEventListener('click', _docClickCloseMore);
+    _moreMenuEl.classList.add('menu-fade-out');
+    setTimeout(() => {
+      if (_moreMenuEl) {
+        _moreMenuEl.remove();
+        _moreMenuEl = null;
+      }
+      document.removeEventListener('click', _docClickCloseMore);
+    }, 150);
   }
 }
 
@@ -262,6 +295,73 @@ function _docClickCloseMore(ev) {
   if (moreToggle && (moreToggle === target || moreToggle.contains(target))) return;
   if (_moreMenuEl.contains(target)) return;
   closeMoreMenu();
+}
+
+// ========== 班级菜单 ==========
+let _classMenuEl = null;
+
+function openClassMenu() {
+  closeMoreMenu();
+  closeSearch();
+  if (_classMenuEl) {
+    closeClassMenu();
+    return;
+  }
+  const menu = document.createElement('div');
+  menu.id = 'class-menu';
+
+  const titleDiv = document.createElement('div');
+  titleDiv.className = 'class-menu-title';
+  titleDiv.innerText = '请选择班级';
+  menu.appendChild(titleDiv);
+
+  CLASSES.forEach(cls => {
+    const item = document.createElement('div');
+    item.className = 'class-item';
+    if (cls === currentClass) item.classList.add('class-item-active');
+    item.innerText = cls;
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectClass(cls);
+    });
+    menu.appendChild(item);
+  });
+
+  document.body.appendChild(menu);
+  _classMenuEl = menu;
+  setTimeout(() => document.addEventListener('click', _docClickCloseClass), 0);
+}
+
+function closeClassMenu() {
+  if (_classMenuEl) {
+    _classMenuEl.classList.add('menu-fade-out');
+    setTimeout(() => {
+      if (_classMenuEl) {
+        _classMenuEl.remove();
+        _classMenuEl = null;
+      }
+      document.removeEventListener('click', _docClickCloseClass);
+    }, 150);
+  }
+}
+
+function _docClickCloseClass(ev) {
+  if (!_classMenuEl) return;
+  const target = ev.target;
+  if (_classMenuEl.contains(target)) return;
+  closeClassMenu();
+}
+
+function selectClass(cls) {
+  if (currentClass !== cls) {
+    currentClass = cls;
+    localStorage.setItem('currentClass', cls);
+    closeClassMenu();
+    if (!dashboardPage.classList.contains('hidden')) renderStudents();
+    if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
+  } else {
+    closeClassMenu();
+  }
 }
 
 function handleAbout() {
@@ -290,7 +390,7 @@ async function handleClearData() {
     return;
   }
 
-  const finalOk = confirm('☢最后一次确认！确定要完全清除学生数据吗？清除后将永远不能恢复，永远！数据无价，谨慎操作！\nℹ 建议您清除前使用导出CSV功能进行备份，避免出现不必要的损失。');
+  const finalOk = confirm('☢最后一次确认！确定要完全清除学生数据吗？清除后将永远不能恢复，永远！数据无价，谨慎操作！\nⓘ 建议您清除前使用导出CSV功能进行备份，避免出现不必要的损失。');
   if (!finalOk) return;
 
   // 执行清空
@@ -301,14 +401,32 @@ async function handleClearData() {
   alert('✔ 清除完成！');
 }
 
+function handleResetAllScores() {
+  closeMoreMenu();
+  const ok = confirm('⚠ 确定要清零所有学生记分吗？该操作会将所有学生的分数清除为0，但学生姓名仍然会保留。清零后将无法恢复！');
+  if (!ok) return;
+
+  const finalOk = confirm('☢ 最后一次确认！确定要清零所有学生记分吗？清除后将永远不能恢复，永远！数据无价，谨慎操作！\nⓘ 建议您清除前使用导出CSV功能进行备份，避免出现不必要的损失。');
+  if (!finalOk) return;
+
+  const students = loadStudents();
+  students.forEach(s => { s.score = 0; });
+  saveStudents(students);
+  if (!dashboardPage.classList.contains('hidden')) renderStudents();
+  if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
+  alert('✔ 清除完成！');
+}
+
 // ========== 数据存储 ==========
 function loadStudents() {
-  const data = localStorage.getItem('students');
+  const key = `students_${currentClass}`;
+  const data = localStorage.getItem(key);
   return data ? JSON.parse(data) : [];
 }
 
 function saveStudents(students) {
-  localStorage.setItem('students', JSON.stringify(students));
+  const key = `students_${currentClass}`;
+  localStorage.setItem(key, JSON.stringify(students));
 }
 
 // ========== 渲染 ==========
@@ -407,7 +525,7 @@ function renderLeaderboard() {
 
 // ========== 功能 ==========
 addStudentBtn.addEventListener('click', () => {
-  const name = prompt('请输入学生姓名：');
+  const name = prompt('👦请输入学生姓名：');
   if (name && name.trim()) {
     const students = loadStudents();
     students.push({ name: name.trim(), score: 0 });
@@ -418,25 +536,25 @@ addStudentBtn.addEventListener('click', () => {
 
 // ✅ 支持中文逗号（，）、顿号（、）、英文逗号（,）
 batchAddBtn.addEventListener('click', () => {
-  const input = prompt('请输入学生姓名，可用中文逗号“，”、顿号“、”或英文逗号“,”分隔：');
+  const input = prompt('🏷请输入学生姓名，可用中文逗号“，”、顿号“、”或英文逗号“,”分隔：');
   if (!input) return;
   const names = input.split(/[,，、]/).map(n => n.trim()).filter(n => n !== '');
   if (names.length === 0) {
-    alert('未检测到有效姓名。');
+    alert('❌ 未检测到有效姓名。');
     return;
   }
   const students = loadStudents();
   names.forEach(name => students.push({ name, score: 0 }));
   saveStudents(students);
   renderStudents();
-  alert(`成功添加 ${names.length} 名学生！`);
+  alert(`✔ 成功添加 ${names.length} 名学生！`);
 });
 
 // CSV 导出
 exportCsvBtn.addEventListener('click', () => {
   const students = loadStudents();
   if (students.length === 0) {
-    alert('没有学生数据可导出！');
+    alert('❌ 没有学生数据可导出！');
     return;
   }
 
@@ -449,7 +567,7 @@ exportCsvBtn.addEventListener('click', () => {
 
   const a = document.createElement('a');
   a.href = url;
-  a.download = '计分数据.csv';
+  a.download = 'ScoringPadData.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -470,7 +588,7 @@ fileInput.addEventListener('change', (e) => {
     const text = event.target.result;
     const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
     if (lines.length < 2) {
-      alert('CSV 文件格式错误或为空！');
+      alert('❌ 该CSV文件不是ScoringPad导出，无法导入。或该文件损坏。');
       return;
     }
 
@@ -499,7 +617,7 @@ fileInput.addEventListener('change', (e) => {
     }
 
     if (students.length === 0) {
-      alert('未解析到有效学生数据！');
+      alert('❌ 未解析到有效学生数据！');
       return;
     }
 
@@ -514,7 +632,7 @@ fileInput.addEventListener('change', (e) => {
 // ========== 操作 ==========
 function handleAddScore(index) {
   const students = loadStudents();
-  const scoreStr = prompt(`为【${students[index].name}】加分，请输入加分值：`);
+  const scoreStr = prompt(`➕ 为【${students[index].name}】加分，请输入加分值：`);
   if (scoreStr === null) return;
   const score = parseFloat(scoreStr);
   if (!isNaN(score)) {
@@ -522,13 +640,13 @@ function handleAddScore(index) {
     saveStudents(students);
     renderStudents();
   } else {
-    alert('请输入有效的数字！');
+    alert('❌ 请输入有效的数字！');
   }
 }
 
 function handleMinusScore(index) {
   const students = loadStudents();
-  const scoreStr = prompt(`为【${students[index].name}】扣分，请输入扣分值：`);
+  const scoreStr = prompt(`➖ 为【${students[index].name}】扣分，请输入扣分值：`);
   if (scoreStr === null) return;
   const score = parseFloat(scoreStr);
   if (!isNaN(score)) {
@@ -536,12 +654,12 @@ function handleMinusScore(index) {
     saveStudents(students);
     renderStudents();
   } else {
-    alert('请输入有效的数字！');
+    alert('❌ 请输入有效的数字！');
   }
 }
 
 function handleResetScore(index) {
-  if (confirm('确定要将该学生的分数清零吗？')) {
+  if (confirm('⚠ 确定要将该学生的分数清零吗？')) {
     const students = loadStudents();
     students[index].score = 0;
     saveStudents(students);
@@ -550,7 +668,7 @@ function handleResetScore(index) {
 }
 
 function handleDeleteStudent(index) {
-  if (confirm('确定要删除该学生及其所有记录吗？')) {
+  if (confirm('⚠ 确定要删除该学生及其所有记录吗？')) {
     const students = loadStudents();
     students.splice(index, 1);
     saveStudents(students);
@@ -563,7 +681,7 @@ screenshotBtn.addEventListener('click', async () => {
   try {
     const element = document.getElementById('ranked-list');
     if (!element || element.children.length === 0) {
-      alert('排行榜为空，无法截图！');
+      alert('❌ 排行榜为空，无法截图！');
       return;
     }
 
@@ -577,7 +695,7 @@ screenshotBtn.addEventListener('click', async () => {
     container.style.width = '600px';
 
     const title = document.createElement('h2');
-    title.textContent = '🏆 计分排行榜';
+    title.textContent = '🏆 排行榜';
     title.style.textAlign = 'center';
     title.style.marginBottom = '20px';
     container.appendChild(title);
@@ -594,12 +712,12 @@ screenshotBtn.addEventListener('click', async () => {
     document.body.removeChild(container);
 
     const link = document.createElement('a');
-    link.download = '排行榜.png';
+    link.download = 'ScoringPadRankingScreenshot.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   } catch (err) {
     console.error('截屏失败:', err);
-    alert('截屏失败，请稍后重试。');
+    alert('❌ 截屏失败，请稍后重试。');
   }
 });
 
@@ -624,13 +742,18 @@ loginBtn.addEventListener('click', () => {
     }
     showDashboardPage();
   } else {
-    alert('用户名或密码错误！');
+    alert('❌ 用户名或密码错误！');
   }
 });
 
 // ========== 初始化 ==========
 window.addEventListener('load', async () => {
   await loadConfig();
+  // 恢复班级选择
+  const savedClass = localStorage.getItem('currentClass');
+  if (savedClass && CLASSES.includes(savedClass)) {
+    currentClass = savedClass;
+  }
   // 将自定义标题应用到浏览器标签页
   if (config.title) {
     document.title = `欢迎使用${config.title}！`;
