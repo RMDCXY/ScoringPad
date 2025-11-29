@@ -32,8 +32,82 @@ let config = {
 };
 
 // ========== 班级管理 ==========
-let currentClass = '班级1';
-const CLASSES = ['班级1', '班级2', '班级3', '班级4'];
+let classes = null; // will be loaded from storage
+let currentClass = null; // 当前选中班级
+
+function loadClasses() {
+  const data = localStorage.getItem('classes');
+  if (data) {
+    try {
+      const arr = JSON.parse(data);
+      if (Array.isArray(arr) && arr.length > 0) {
+        classes = arr;
+        return classes;
+      }
+    } catch (e) {
+      // fallthrough
+    }
+  }
+  classes = ['班级1'];
+  saveClasses();
+  return classes;
+}
+
+function saveClasses() {
+  localStorage.setItem('classes', JSON.stringify(classes));
+}
+
+function addClass(name) {
+  if (!name) return false;
+  name = name.trim();
+  if (!name) return false;
+  if (classes.includes(name)) return false;
+  classes.push(name);
+  saveClasses();
+  return true;
+}
+
+function renameClass(oldName, newName) {
+  newName = (newName || '').trim();
+  if (!newName || classes.includes(newName)) return false;
+  const idx = classes.indexOf(oldName);
+  if (idx === -1) return false;
+  // move students data if exists
+  const oldKey = `students_${oldName}`;
+  const newKey = `students_${newName}`;
+  const oldData = localStorage.getItem(oldKey);
+  // if newKey exists, we will overwrite it
+  if (oldData !== null) {
+    localStorage.setItem(newKey, oldData);
+    localStorage.removeItem(oldKey);
+  }
+  classes[idx] = newName;
+  saveClasses();
+  // update currentClass if needed
+  if (currentClass === oldName) {
+    currentClass = newName;
+    localStorage.setItem('currentClass', currentClass);
+  }
+  return true;
+}
+
+function deleteClassByName(name) {
+  const idx = classes.indexOf(name);
+  if (idx === -1) return false;
+  // remove students for this class
+  localStorage.removeItem(`students_${name}`);
+  classes.splice(idx, 1);
+  if (classes.length === 0) {
+    classes = ['班级1'];
+  }
+  saveClasses();
+  // adjust currentClass
+  if (currentClass === name) {
+    currentClass = classes[0];
+    localStorage.setItem('currentClass', currentClass);
+  }
+  return true;
+}
 
 // 读取 scoringpad.json 配置
 async function loadConfig() {
@@ -149,22 +223,34 @@ function showLeaderboardPage() {
 let _searchBarEl = null;
 
 function openSearch() {
-  // 隐藏顶栏按钮（主题、搜索、更多、班级）
-  if (themeToggle) themeToggle.style.display = 'none';
-  if (searchToggle) searchToggle.style.display = 'none';
-  if (moreToggle) moreToggle.style.display = 'none';
-  if (classToggle) classToggle.style.display = 'none';
-
-  // 已经打开则聚焦输入
+  // 如果已存在，聚焦并返回
   if (_searchBarEl) {
     const inp = document.getElementById('global-search');
     if (inp) inp.focus();
     return;
   }
 
-  // 创建搜索条
+  // 让其它三个按钮渐隐（更多、班级、主题），并把 search-toggle 移动到主题按钮位置
+  if (moreToggle) moreToggle.classList.add('btn-hidden');
+  if (classToggle) classToggle.classList.add('btn-hidden');
+  if (themeToggle) themeToggle.classList.add('btn-hidden');
+  if (searchToggle) {
+    // 把搜索按钮移动到主题位置
+    searchToggle.classList.add('moved');
+    // 标记页面处于搜索打开状态，供 CSS 调整 search-bar 右侧间距（避开按钮）
+    document.body.classList.add('search-opened');
+    // 将搜索按钮的点击行为切换为关闭
+    try { searchToggle.removeEventListener('click', openSearch); } catch (e) {}
+    searchToggle.addEventListener('click', closeSearch);
+    // 视觉上变为关闭图标
+    searchToggle.dataset.prev = searchToggle.innerText;
+    searchToggle.innerText = '❌';
+  }
+
+  // 创建搜索条（初始不可见/透明，通过 CSS 动画淡入）
   const bar = document.createElement('div');
   bar.id = 'search-bar';
+  // 先设置为不可见样式，稍后加入可见类触发过渡
 
   const input = document.createElement('input');
   input.id = 'global-search';
@@ -172,13 +258,8 @@ function openSearch() {
   input.placeholder = '搜索学生姓名...';
   input.autocomplete = 'off';
 
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'search-close-btn';
-  closeBtn.type = 'button';
-  closeBtn.innerText = '❌';
-
+  // 不再在搜索栏内创建独立的关闭按钮，搜索按钮会 morph 为关闭并承担关闭功能
   bar.appendChild(input);
-  bar.appendChild(closeBtn);
   document.body.appendChild(bar);
   _searchBarEl = bar;
 
@@ -189,28 +270,48 @@ function openSearch() {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeSearch();
   });
-  closeBtn.addEventListener('click', closeSearch);
-
-  // 自动聚焦
-  setTimeout(() => input.focus(), 50);
+  // 触发过渡（延迟一帧）
+  requestAnimationFrame(() => {
+    _searchBarEl.classList.add('visible');
+    setTimeout(() => input.focus(), 160);
+  });
 }
 
 function closeSearch() {
+  // 隐藏搜索栏的淡出动画
   if (_searchBarEl) {
-    _searchBarEl.remove();
-    _searchBarEl = null;
+    _searchBarEl.classList.remove('visible');
+    // 等待过渡结束后移除 DOM
+    setTimeout(() => {
+      if (_searchBarEl) {
+        _searchBarEl.remove();
+        _searchBarEl = null;
+      }
+    }, 260);
   }
-  if (themeToggle) themeToggle.style.display = '';
-  if (searchToggle) searchToggle.style.display = '';
-  if (moreToggle) moreToggle.style.display = '';
-  if (classToggle) classToggle.style.display = '';
-  // 恢复全量渲染
-  if (!dashboardPage.classList.contains('hidden')) {
-    renderStudents();
+
+  // 恢复右上角按钮状态（反向动画）
+  if (moreToggle) moreToggle.classList.remove('btn-hidden');
+  if (classToggle) classToggle.classList.remove('btn-hidden');
+  if (themeToggle) themeToggle.classList.remove('btn-hidden');
+  if (searchToggle) {
+    searchToggle.classList.remove('moved');
+    document.body.classList.remove('search-opened');
+    // 恢复搜索按钮的点击行为
+    try { searchToggle.removeEventListener('click', closeSearch); } catch (e) {}
+    searchToggle.addEventListener('click', openSearch);
+    // 恢复图标
+    if (searchToggle.dataset && searchToggle.dataset.prev) {
+      searchToggle.innerText = searchToggle.dataset.prev;
+      delete searchToggle.dataset.prev;
+    } else {
+      searchToggle.innerText = '🔍';
+    }
   }
-  if (!leaderboardPage.classList.contains('hidden')) {
-    renderLeaderboard();
-  }
+
+  // 恢复内容渲染
+  if (!dashboardPage.classList.contains('hidden')) renderStudents();
+  if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
 }
 
 function performSearch(query) {
@@ -229,7 +330,28 @@ function createMoreMenu() {
   if (_moreMenuEl) return _moreMenuEl;
   const menu = document.createElement('div');
   menu.id = 'more-menu';
+  // 添加学生 / 批量添加 / 导入 / 导出（与页面原按钮功能一致，移入更多菜单）
+  const addItem = document.createElement('div');
+  addItem.className = 'more-item';
+  addItem.innerText = '🧑 添加学生';
+  addItem.addEventListener('click', (e) => { e.stopPropagation(); addStudentUI(); closeMoreMenu(); });
 
+  const batchItem = document.createElement('div');
+  batchItem.className = 'more-item';
+  batchItem.innerText = '➕ 批量添加学生';
+  batchItem.addEventListener('click', (e) => { e.stopPropagation(); batchAddUI(); closeMoreMenu(); });
+
+  const importItem = document.createElement('div');
+  importItem.className = 'more-item';
+  importItem.innerText = '📁 导入CSV';
+  importItem.addEventListener('click', (e) => { e.stopPropagation(); importCsvAction(); closeMoreMenu(); });
+
+  const exportItem = document.createElement('div');
+  exportItem.className = 'more-item';
+  exportItem.innerText = '📄 导出CSV';
+  exportItem.addEventListener('click', (e) => { e.stopPropagation(); exportCsvAction(); closeMoreMenu(); });
+
+  // 原有的清空/清零/关于项
   const clearItem = document.createElement('div');
   clearItem.className = 'more-item';
   clearItem.innerText = '🗑️ 清空数据';
@@ -254,6 +376,10 @@ function createMoreMenu() {
     handleAbout();
   });
 
+  menu.appendChild(addItem);
+  menu.appendChild(batchItem);
+  menu.appendChild(importItem);
+  menu.appendChild(exportItem);
   menu.appendChild(clearItem);
   menu.appendChild(zeroItem);
   menu.appendChild(aboutItem);
@@ -315,17 +441,93 @@ function openClassMenu() {
   titleDiv.innerText = '请选择班级';
   menu.appendChild(titleDiv);
 
-  CLASSES.forEach(cls => {
+  // Ensure classes is loaded
+  if (!classes) loadClasses();
+
+  classes.forEach(cls => {
     const item = document.createElement('div');
     item.className = 'class-item';
     if (cls === currentClass) item.classList.add('class-item-active');
-    item.innerText = cls;
-    item.addEventListener('click', (e) => {
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'class-name';
+    nameSpan.innerText = cls;
+    nameSpan.addEventListener('click', (e) => {
       e.stopPropagation();
       selectClass(cls);
     });
+
+    const actions = document.createElement('span');
+    actions.className = 'class-actions';
+
+    const renameBtn = document.createElement('button');
+    renameBtn.className = 'class-action-btn rename-btn';
+    renameBtn.title = '重命名班级';
+    renameBtn.innerText = '🖊';
+    renameBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newName = prompt(`✏ 请输入班级新名称：`, cls);
+      if (!newName) return;
+      if (newName.trim() === cls) return;
+      const ok = renameClass(cls, newName);
+      if (!ok) {
+        alert('❌ 重命名失败（可能名称为空或已存在）');
+        return;
+      }
+      // 重渲染菜单
+      closeClassMenu();
+      openClassMenu();
+      // 提示用户重命名成功
+      alert(`✔ 成功将【${cls}】重命名为【${newName.trim()}】`);
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'class-action-btn delete-class-btn';
+    delBtn.title = '删除班级';
+    delBtn.innerText = '🗑️';
+    // 如果只有一个班级，则禁用删除按钮（不可点击且灰色），避免用户删除唯一班级
+    if (classes && classes.length <= 1) {
+      delBtn.classList.add('disabled');
+      delBtn.setAttribute('disabled', 'disabled');
+      delBtn.title = '无法删除唯一班级';
+    } else {
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleDeleteClassUI(cls);
+      });
+    }
+
+    actions.appendChild(renameBtn);
+    actions.appendChild(delBtn);
+
+    item.appendChild(nameSpan);
+    item.appendChild(actions);
     menu.appendChild(item);
   });
+
+  // 创建班级按钮
+  const createDiv = document.createElement('div');
+  createDiv.className = 'class-item class-create';
+  createDiv.innerText = '➕ 创建班级';
+  createDiv.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const name = prompt('➕ 请输入新班级名称：');
+    if (!name) return;
+    const ok = addClass(name);
+    if (!ok) {
+      alert('❌ 创建失败（名称为空或已存在）');
+      return;
+    }
+    // 切换到新班级
+    currentClass = name.trim();
+    localStorage.setItem('currentClass', currentClass);
+    closeClassMenu();
+    if (!dashboardPage.classList.contains('hidden')) renderStudents();
+    if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
+    // 提示用户创建成功
+    alert(`✔ 成功添加班级【${currentClass}】`);
+  });
+  menu.appendChild(createDiv);
 
   document.body.appendChild(menu);
   _classMenuEl = menu;
@@ -379,7 +581,7 @@ function generateConfirmCode() {
 
 async function handleClearData() {
   closeMoreMenu();
-  const ok = confirm('⚠确认清除所有学生记分数据吗？清除之后将无法恢复！');
+  const ok = confirm('⚠确认清除所有班级的所有学生记分数据吗？清除之后将无法恢复！');
   if (!ok) return;
 
   const code = generateConfirmCode();
@@ -393,17 +595,62 @@ async function handleClearData() {
   const finalOk = confirm('☢最后一次确认！确定要完全清除学生数据吗？清除后将永远不能恢复，永远！数据无价，谨慎操作！\nⓘ 建议您清除前使用导出CSV功能进行备份，避免出现不必要的损失。');
   if (!finalOk) return;
 
-  // 执行清空
-  saveStudents([]);
-  // 如果当前在页面，刷新视图
-  if (!dashboardPage.classList.contains('hidden')) renderStudents();
-  if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
-  alert('✔ 清除完成！');
+  // 执行：彻底删除所有班级及其学生数据（并移除班级列表与当前班级选择）
+  // 1) 删除所有以 students_ 开头的键
+  try {
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      if (key.startsWith('students_')) toRemove.push(key);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+
+    // 2) 删除 classes 与 currentClass（以及 autoLogin）等会话数据
+    localStorage.removeItem('classes');
+    localStorage.removeItem('currentClass');
+    localStorage.removeItem('autoLogin');
+
+    // 3) 为保持当前会话可用，重置内存中的 classes/currentClass 为默认值（但不立即持久化）
+    classes = ['班级1'];
+    currentClass = classes[0];
+
+    // 刷新视图
+    if (!dashboardPage.classList.contains('hidden')) renderStudents();
+    if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
+
+    alert('✔ 已彻底删除所有班级及其学生数据。');
+  } catch (e) {
+    console.error('清除全部数据失败：', e);
+    alert('❌ 清除异常失败。');
+  }
+}
+
+function handleDeleteClassUI(cls) {
+  // 删除单个班级（含其学生数据），使用同样的多步骤确认
+  closeClassMenu();
+  const ok = confirm(`⚠ 确定要删除班级【${cls}】及其所有学生数据吗？此操作不可逆！`);
+  if (!ok) return;
+  const code = generateConfirmCode();
+  const input = prompt(`⌨请完整重复输入【${code}】以确认删除班级【${cls}】`);
+  if (input === null) return;
+  if (input !== code) {
+    alert('❌ 输入不匹配，操作已取消');
+    return;
+  }
+  const finalOk = confirm('☢ 最后一次确认：确定要永久删除该班级吗？该操作无法恢复！');
+  if (!finalOk) return;
+  const okDel = deleteClassByName(cls);
+  if (!okDel) {
+    alert('❌ 删除失败');
+    return;
+  }
+  alert('✔ 班级已删除');
 }
 
 function handleResetAllScores() {
   closeMoreMenu();
-  const ok = confirm('⚠ 确定要清零所有学生记分吗？该操作会将所有学生的分数清除为0，但学生姓名仍然会保留。清零后将无法恢复！');
+  const ok = confirm('⚠ 确定要清零该班级所有学生记分吗？该操作会将所有学生的分数清除为0，但学生姓名仍然会保留。清零后将无法恢复！');
   if (!ok) return;
 
   const finalOk = confirm('☢ 最后一次确认！确定要清零所有学生记分吗？清除后将永远不能恢复，永远！数据无价，谨慎操作！\nⓘ 建议您清除前使用导出CSV功能进行备份，避免出现不必要的损失。');
@@ -524,7 +771,8 @@ function renderLeaderboard() {
 }
 
 // ========== 功能 ==========
-addStudentBtn.addEventListener('click', () => {
+// 将页面操作抽成可复用函数，菜单和（若存在）原按钮都会调用
+function addStudentUI() {
   const name = prompt('👦请输入学生姓名：');
   if (name && name.trim()) {
     const students = loadStudents();
@@ -532,11 +780,10 @@ addStudentBtn.addEventListener('click', () => {
     saveStudents(students);
     renderStudents();
   }
-});
+}
 
-// ✅ 支持中文逗号（，）、顿号（、）、英文逗号（,）
-batchAddBtn.addEventListener('click', () => {
-  const input = prompt('🏷请输入学生姓名，可用中文逗号“，”、顿号“、”或英文逗号“,”分隔：');
+function batchAddUI() {
+  const input = prompt('🏫 请输入所有需要批量添加的学生姓名，可用中文逗号“，”、顿号“、”或英文逗号“,”分隔：');
   if (!input) return;
   const names = input.split(/[,，、]/).map(n => n.trim()).filter(n => n !== '');
   if (names.length === 0) {
@@ -548,10 +795,9 @@ batchAddBtn.addEventListener('click', () => {
   saveStudents(students);
   renderStudents();
   alert(`✔ 成功添加 ${names.length} 名学生！`);
-});
+}
 
-// CSV 导出
-exportCsvBtn.addEventListener('click', () => {
+function exportCsvAction() {
   const students = loadStudents();
   if (students.length === 0) {
     alert('❌ 没有学生数据可导出！');
@@ -567,17 +813,25 @@ exportCsvBtn.addEventListener('click', () => {
 
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'ScoringPadData.csv';
+  // 导出文件名：当前班级名 + 班级数据（不包含额外符号）
+  const safeName = (currentClass || '班级').replace(/[\\/:*?"<>|]/g, '_');
+  a.download = `${safeName}班级数据.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-});
+}
 
-// CSV 导入
-importCsvBtn.addEventListener('click', () => {
-  fileInput.click();
-});
+function importCsvAction() {
+  // 利用页面的隐藏 file input
+  if (fileInput) fileInput.click();
+}
+
+// 如果页面上仍存在原按钮，保留兼容性绑定
+if (addStudentBtn) addStudentBtn.addEventListener('click', addStudentUI);
+if (batchAddBtn) batchAddBtn.addEventListener('click', batchAddUI);
+if (exportCsvBtn) exportCsvBtn.addEventListener('click', exportCsvAction);
+if (importCsvBtn) importCsvBtn.addEventListener('click', importCsvAction);
 
 fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
@@ -623,7 +877,7 @@ fileInput.addEventListener('change', (e) => {
 
     saveStudents(students);
     renderStudents();
-    alert(`成功导入 ${students.length} 名学生！`);
+    alert(`✔ 成功导入 ${students.length} 名学生！`);
   };
   reader.readAsText(file, 'utf-8');
   e.target.value = '';
@@ -749,10 +1003,15 @@ loginBtn.addEventListener('click', () => {
 // ========== 初始化 ==========
 window.addEventListener('load', async () => {
   await loadConfig();
-  // 恢复班级选择
+  // 恢复班级列表与选择
+  loadClasses();
   const savedClass = localStorage.getItem('currentClass');
-  if (savedClass && CLASSES.includes(savedClass)) {
+  if (savedClass && classes && classes.includes(savedClass)) {
     currentClass = savedClass;
+  } else {
+    // 默认第一个班级
+    currentClass = classes && classes.length ? classes[0] : '班级1';
+    localStorage.setItem('currentClass', currentClass);
   }
   // 将自定义标题应用到浏览器标签页
   if (config.title) {
@@ -773,3 +1032,83 @@ window.addEventListener('load', async () => {
     loginPage.style.display = 'none';
   }
 });
+
+// ========== 自定义背景与模糊控制 ==========
+function isMobileDevice() {
+  return /Mobi|Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+}
+
+async function checkAndApplyBackground() {
+  const fileName = isMobileDevice() ? 'mob.png' : 'pc.png';
+  try {
+    // 尝试 HEAD 请求以检测文件是否存在
+    const res = await fetch(fileName + '?_=' + Date.now(), { method: 'HEAD' });
+    if (res.ok) {
+      const url = fileName;
+      document.body.style.backgroundImage = `url('${url}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center center';
+      document.body.classList.add('has-custom-bg');
+
+      // 载入图片并判断亮度，以便在颜色较暗时调整菜单/标题文字为浅色
+      try {
+        await (async () => {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = url + '?_=' + Date.now();
+            img.onload = () => {
+              try {
+                const canvas = document.createElement('canvas');
+                const w = 40;
+                const h = Math.max(1, Math.round(img.height * (40 / img.width)));
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                const data = ctx.getImageData(0, 0, w, h).data;
+                let totalL = 0;
+                let count = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                  const r = data[i];
+                  const g = data[i + 1];
+                  const b = data[i + 2];
+                  // 相对亮度公式
+                  const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                  totalL += l;
+                  count++;
+                }
+                const avgL = totalL / count; // 0-255
+                // 如果平均亮度较低（阈值：80），则认为图片偏暗
+                if (avgL < 80) {
+                  document.body.classList.add('bg-is-dark');
+                } else {
+                  document.body.classList.remove('bg-is-dark');
+                }
+              } catch (e) {
+                // 处理 canvas 跨域或其他错误，保守不设置 bg-is-dark
+                console.warn('分析背景亮度失败：', e);
+              }
+              resolve();
+            };
+            img.onerror = () => resolve();
+          });
+        })();
+      } catch (e) {
+        console.warn('背景亮度检测异常：', e);
+      }
+      return;
+    }
+  } catch (e) {
+    // 忽略错误
+  }
+  // 未找到自定义背景，移除样式与类
+  document.body.style.backgroundImage = '';
+  document.body.classList.remove('has-custom-bg');
+  document.body.classList.remove('bg-is-dark');
+}
+
+// 检查背景并在窗口调整或方向改变时重新检查
+window.addEventListener('load', checkAndApplyBackground);
+window.addEventListener('resize', () => { setTimeout(checkAndApplyBackground, 200); });
+window.addEventListener('orientationchange', () => { setTimeout(checkAndApplyBackground, 200); });

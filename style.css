@@ -3,8 +3,11 @@
   --text-color: #333333;
   --card-bg: #ffffff;
   --border-color: #eeeeee;
+  --menu-border: rgba(0,0,0,0.08);
+  --menu-bg: rgba(255,255,255,0.06);
+  --page-overlay: rgba(255,255,255,0.28);
   --notice-bg: #fff8e1;
-  --notice-border: #ffc107;
+  --notice-border: #0095ff;
   --shadow: 0 4px 10px rgba(0,0,0,0.1);
   --btn-blue: #2196F3;
   --btn-blue-hover: #1976D2;
@@ -24,6 +27,9 @@
   --text-color: #e0e0e0;
   --card-bg: #1e1e1e;
   --border-color: #333333;
+  --menu-border: rgba(255,255,255,0.06);
+  --menu-bg: rgba(0,0,0,0.06);
+  --page-overlay: rgba(0,0,0,0.18);
   --notice-bg: #2c281a;
   --notice-border: #b08800;
   --shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -51,7 +57,12 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   padding: 20px;
-  transition: background-color 0.3s, color 0.3s;
+  /* 深浅切换过渡改为 0.4s */
+  transition: background-color 0.4s ease, color 0.4s ease;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .page {
@@ -67,8 +78,8 @@ body {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-border);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -96,12 +107,34 @@ body {
   right: 45px;
 }
 
+/* 使右上角控制按钮与菜单使用相同的毛玻璃与边框样式 */
+.theme-toggle,
+#search-toggle,
+#more-toggle,
+#class-toggle {
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
+  color: var(--text-color);
+  /* 放慢背景渐变并添加位置、透明度过渡；保持 transform 快速反馈 */
+  transition: background-color 0.4s ease, right 0.4s ease, opacity 0.2s ease, transform 0.08s;
+}
+.theme-toggle:hover,
+#search-toggle:hover,
+#more-toggle:hover,
+#class-toggle:hover {
+  transform: translateY(-1px);
+}
+
 /* 搜索条样式（在激活搜索时显示） */
 #search-bar {
   position: fixed;
   top: 20px;
-  right: 20px;
+  right: 25px; /* 保持与按钮 25px 间距 */
   width: 380px;
+  max-width: calc(100% - 50px); /* 两侧各留 25px，避免窄屏超出 */
   z-index: 200;
   display: flex;
   gap: 8px;
@@ -112,15 +145,18 @@ body {
 #more-menu {
   position: fixed;
   top: 70px; /* 在按钮下方 */
-  right: 100px; /* 与更多按钮对齐 */
-  background: var(--card-bg);
+  right: 50px; /* 与更多按钮对齐 */
+  /* 使用与页面相同的毛玻璃覆盖，以保持一致性 */
+  background: var(--page-overlay);
   color: var(--text-color);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--menu-border);
   border-radius: 8px;
   box-shadow: var(--shadow);
   z-index: 300;
   min-width: 180px;
   overflow: hidden;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 #more-menu .more-item {
@@ -133,7 +169,7 @@ body {
 }
 
 #more-menu .more-item:hover {
-  background: rgba(0,0,0,0.04);
+  background: rgba(0,0,0,0.06);
 }
 
 #more-menu {
@@ -145,16 +181,19 @@ body {
 #class-menu {
   position: fixed;
   top: 70px;
-  right: 50px;
-  background: var(--card-bg);
+  right: 25px;
+  /* 使用与页面相同的毛玻璃覆盖，以保持一致性 */
+  background: var(--page-overlay);
   color: var(--text-color);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--menu-border);
   border-radius: 8px;
   box-shadow: var(--shadow);
   z-index: 300;
   min-width: 140px;
   overflow: hidden;
   animation: slideFadeDown 180ms ease-out both;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .class-menu-title {
@@ -188,16 +227,39 @@ body {
   font-weight: bold;
 }
 
+/* 班级项右侧的动作按钮（重命名/删除） */
+.class-item { display: flex; align-items: center; justify-content: space-between; }
+.class-actions { display: inline-flex; gap: 6px; }
+.class-action-btn {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border-radius: 4px;
+  background: var(--icon-bg);
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.class-action-btn:hover { background: var(--icon-bg-hover); }
+.class-create { font-weight: bold; text-align: left; }
+
 .search-input {
   flex: 1;
   padding: 10px 12px;
   border-radius: 20px;
   border: 1px solid var(--border-color);
-  background: var(--card-bg);
+  /* 使用和右上角按钮一致的毛玻璃背景样式 */
+  background: var(--menu-bg);
+  color: var(--text-color);
   color: var(--text-color);
   font-size: 14px;
   outline: none;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 @keyframes slideFadeDown {
@@ -230,12 +292,94 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  /* 与右上角按钮风格保持一致（毛玻璃背景 + 边框） */
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-border);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+/* 当需要渐隐时应用 */
+.btn-hidden {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+/* 搜索按钮移动到主题按钮位置时的状态 */
+#search-toggle.moved {
+  right: 25px; /* 与主题按钮一致 */
+}
+
+/* 搜索栏进入/退出动画 */
+#search-bar {
+  position: fixed;
+  top: 20px;
+  right: 25px;
+  width: 380px;
+  max-width: calc(100% - 50px);
+  z-index: 200;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 240ms ease, transform 240ms ease;
+}
+
+#search-bar.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 仪表盘中心大标题渐变（颜色/阴影） */
+#dashboard-page h1 {
+  transition: color 0.4s ease, text-shadow 0.4s ease, background-color 0.4s ease;
+}
+
+/* 深色背景时调整更多菜单与大标题为浅色，提升可读性
+   仅在页面处于暗色主题（html[data-theme="dark"]) 且背景检测为深色时生效 */
+html[data-theme="dark"] .bg-is-dark #more-menu,
+html[data-theme="dark"] .bg-is-dark #class-menu {
+  /* 保留毛玻璃覆盖，使菜单与仪表盘视觉一致，同时在深色背景下调整文字为浅色 */
+  background: var(--page-overlay);
+  border-color: var(--border-color);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+html[data-theme="dark"] .bg-is-dark #more-menu .more-item,
+html[data-theme="dark"] .bg-is-dark #class-menu .class-item,
+html[data-theme="dark"] .bg-is-dark #more-menu .more-item:hover,
+html[data-theme="dark"] .bg-is-dark #class-menu .class-item:hover {
+  color: #f7f7f7;
+}
+html[data-theme="dark"] .bg-is-dark #dashboard-page h1 {
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+/* 平滑渐变：让菜单和仪表盘标题在深浅切换时平滑过渡 */
+#more-menu,
+#class-menu,
+#dashboard-page {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* 禁用状态样式（用于当只有一个班级时禁用删除按钮） */
+.class-action-btn.disabled,
+.class-action-btn[disabled] {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* 当搜索打开时，把搜索栏向左推一部分，给右侧的关闭按钮留出空间
+   48px 为圆形按钮尺寸 + 边框/余量，8px 为间隙，总计 56px */
+body.search-opened #search-bar {
+  right: calc(25px + 48px + 8px);
+  max-width: calc(100% - 50px - 56px);
 }
 
 /* 登录页面 */
@@ -294,7 +438,9 @@ body {
   max-width: 800px;
   margin: 0 auto;
   background: var(--card-bg);
-  padding: 20px;
+  padding: 15px;
+  padding-top:10px;
+  margin-top:30px;
   border-radius: 10px;
   box-shadow: var(--shadow);
 }
@@ -309,7 +455,10 @@ body {
 /* 提示框 */
 .notice {
   position: relative;
-  background-color: var(--notice-bg);
+  /* 半透明 + 毛玻璃，使背景可见同时增强可读性 */
+  background-color: rgba(255,248,225,0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   padding: 15px 35px 15px 15px;
   border-left: 5px solid var(--notice-border);
   margin-bottom: 20px;
@@ -318,6 +467,22 @@ body {
   color: var(--text-color);
   border-radius: 6px;
   overflow: hidden;
+}
+
+/* 深色主题下的提示背景为半透明暗色，保持可读性并保留模糊 */
+[data-theme="dark"] .notice {
+  background-color: rgba(44,40,26,0.68);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* 当存在自定义背景时，对页面主体启用毛玻璃覆盖 */
+.has-custom-bg #dashboard-page,
+.has-custom-bg #leaderboard-page,
+.has-custom-bg #login-page {
+  background: var(--page-overlay);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .close-btn {
@@ -348,7 +513,7 @@ body {
 .btn-purple,
 .btn-green,
 .btn-yellow {
-  padding: 12px;
+  padding: 8px 16px;
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -422,8 +587,9 @@ body {
 }
 
 .student-actions button {
-  background: var(--icon-bg);
-  border: none;
+  /* 使用毛玻璃背景以增强与页面风格一致性，并保持可读性 */
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-border);
   border-radius: 5px;
   width: 30px;
   height: 30px;
@@ -434,6 +600,8 @@ body {
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .student-actions button:hover {
