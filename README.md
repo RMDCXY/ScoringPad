@@ -10,9 +10,17 @@ Scoring Pad是一个记分模板，皆在解决课堂记分不方便、排行计
 
 Scoring Pad使用localStorage本地存储记分数据，由于技术限制原因，暂时没有云端存储版本QWQ如果有大佬会云端存储相关，可以反馈一个issue哦
 
-## 如何配置Scoring Pad
+## 如果您是普通用户：
 
-您只需要修改`scoringpad.json`即可修改计分板配置。接下来会逐一讲解修改配置项。
+您可以直接打开[Scoring Pad在线示例站点](https://scoringpad.cxybbs.top)，直接使用。
+
+后续还会出桌面端，敬请期待。
+
+## 如果您是开发者：
+
+您可以fork该仓库，或者克隆仓库，来配置属于您自己的Scoring Pad。
+
+只需要修改`scoringpad.json`即可修改计分板配置。接下来会逐一讲解修改配置项。
 
 <img alt="image" src="https://github.com/user-attachments/assets/e2869d49-cee2-435b-8f55-fb68bf9fce8c" />
 
