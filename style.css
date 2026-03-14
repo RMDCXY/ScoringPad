@@ -1,0 +1,748 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  --border-color: #eeeeee;
+  --menu-border: rgba(0,0,0,0.08);
+  --menu-bg: rgba(255,255,255,0.06);
+  --page-overlay: rgba(255,255,255,0.28);
+  --notice-bg: #fff8e1;
+  --notice-border: #0095ff;
+  --shadow: 0 4px 10px rgba(0,0,0,0.1);
+  --btn-blue: #2196F3;
+  --btn-blue-hover: #1976D2;
+  --btn-purple: #9c27b0;
+  --btn-purple-hover: #7b1fa2;
+  --btn-green: #4CAF50;
+  --btn-green-hover: #45a049;
+  --btn-yellow: #FFC107;
+  --btn-yellow-hover: #FFB300;
+  --score-color: #e91e63;
+  --icon-bg: #f5f5f5;
+  --icon-bg-hover: #e0e0e0;
+}
+
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --text-color: #e0e0e0;
+  --card-bg: #1e1e1e;
+  --border-color: #333333;
+  --menu-border: rgba(255,255,255,0.06);
+  --menu-bg: rgba(0,0,0,0.06);
+  --page-overlay: rgba(0,0,0,0.18);
+  --notice-bg: #2c281a;
+  --notice-border: #b08800;
+  --shadow: 0 4px 10px rgba(0,0,0,0.3);
+  --btn-blue: #1976D2;
+  --btn-blue-hover: #1565C0;
+  --btn-purple: #7b1fa2;
+  --btn-purple-hover: #6a1b9a;
+  --btn-green: #45a049;
+  --btn-green-hover: #388e3c;
+  --btn-yellow: #FFB300;
+  --btn-yellow-hover: #FFA000;
+  --score-color: #ff6b6b;
+  --icon-bg: #2d2d2d;
+  --icon-bg-hover: #3d3d3d;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Microsoft YaHei", sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  padding: 20px;
+  /* 深浅切换过渡改为 0.4s */
+  transition: background-color 0.4s ease, color 0.4s ease;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.page {
+  display: block;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* 深浅色切换按钮 */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+
+/* 搜索按钮放在更多按钮与班级之间 */
+#search-toggle {
+  right: 70px;
+}
+
+/* 更多按钮放在最左侧 */
+#more-toggle {
+  right: 95px;
+}
+
+/* 班级按钮放在搜索与主题切换之间 */
+#class-toggle {
+  right: 45px;
+}
+
+/* 使右上角控制按钮与菜单使用相同的毛玻璃与边框样式 */
+.theme-toggle,
+#search-toggle,
+#more-toggle,
+#class-toggle {
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
+  color: var(--text-color);
+  /* 放慢背景渐变并添加位置、透明度过渡；保持 transform 快速反馈 */
+  transition: background-color 0.4s ease, right 0.4s ease, opacity 0.2s ease, transform 0.08s;
+}
+.theme-toggle:hover,
+#search-toggle:hover,
+#more-toggle:hover,
+#class-toggle:hover {
+  transform: translateY(-1px);
+}
+
+/* 搜索条样式（在激活搜索时显示） */
+#search-bar {
+  position: fixed;
+  top: 20px;
+  right: 25px; /* 保持与按钮 25px 间距 */
+  width: 380px;
+  max-width: calc(100% - 50px); /* 两侧各留 25px，避免窄屏超出 */
+  z-index: 200;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 更多菜单（默认隐藏，通过 JS 动态插入/展示） */
+#more-menu {
+  position: fixed;
+  top: 70px; /* 在按钮下方 */
+  right: 50px; /* 与更多按钮对齐 */
+  /* 使用与页面相同的毛玻璃覆盖，以保持一致性 */
+  background: var(--page-overlay);
+  color: var(--text-color);
+  border: 1px solid var(--menu-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 300;
+  min-width: 180px;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#more-menu .more-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#more-menu .more-item:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+#more-menu {
+  will-change: transform, opacity;
+  animation: slideFadeDown 180ms ease-out both;
+}
+
+/* 班级菜单 */
+#class-menu {
+  position: fixed;
+  top: 70px;
+  right: 25px;
+  /* 使用与页面相同的毛玻璃覆盖，以保持一致性 */
+  background: var(--page-overlay);
+  color: var(--text-color);
+  border: 1px solid var(--menu-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 300;
+  min-width: 140px;
+  overflow: hidden;
+  animation: slideFadeDown 180ms ease-out both;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.class-menu-title {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text-color);
+  opacity: 0.7;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.class-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.class-item:last-child {
+  border-bottom: none;
+}
+
+.class-item:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.class-item-active {
+  background: rgba(33, 150, 243, 0.2);
+  color: var(--btn-blue);
+  font-weight: bold;
+}
+
+/* 班级项右侧的动作按钮（重命名/删除） */
+.class-item { display: flex; align-items: center; justify-content: space-between; }
+.class-actions { display: inline-flex; gap: 6px; }
+.class-action-btn {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border-radius: 4px;
+  background: var(--icon-bg);
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.class-action-btn:hover { background: var(--icon-bg-hover); }
+.class-create { font-weight: bold; text-align: left; }
+
+.search-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  /* 使用和右上角按钮一致的毛玻璃背景样式 */
+  background: var(--menu-bg);
+  color: var(--text-color);
+  color: var(--text-color);
+  font-size: 14px;
+  outline: none;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@keyframes slideFadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes menuFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.menu-fade-out {
+  animation: menuFadeOut 150ms ease-in forwards !important;
+}
+
+.search-close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  /* 与右上角按钮风格保持一致（毛玻璃背景 + 边框） */
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* 当需要渐隐时应用 */
+.btn-hidden {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+/* 搜索按钮移动到主题按钮位置时的状态 */
+#search-toggle.moved {
+  right: 25px; /* 与主题按钮一致 */
+}
+
+/* 搜索栏进入/退出动画 */
+#search-bar {
+  position: fixed;
+  top: 20px;
+  right: 25px;
+  width: 380px;
+  max-width: calc(100% - 50px);
+  z-index: 200;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 240ms ease, transform 240ms ease;
+}
+
+#search-bar.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 仪表盘中心大标题渐变（颜色/阴影） */
+#dashboard-page h1 {
+  transition: color 0.4s ease, text-shadow 0.4s ease, background-color 0.4s ease;
+}
+
+/* 深色背景时调整更多菜单与大标题为浅色，提升可读性
+   仅在页面处于暗色主题（html[data-theme="dark"]) 且背景检测为深色时生效 */
+html[data-theme="dark"] .bg-is-dark #more-menu,
+html[data-theme="dark"] .bg-is-dark #class-menu {
+  /* 保留毛玻璃覆盖，使菜单与仪表盘视觉一致，同时在深色背景下调整文字为浅色 */
+  background: var(--page-overlay);
+  border-color: var(--border-color);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+html[data-theme="dark"] .bg-is-dark #more-menu .more-item,
+html[data-theme="dark"] .bg-is-dark #class-menu .class-item,
+html[data-theme="dark"] .bg-is-dark #more-menu .more-item:hover,
+html[data-theme="dark"] .bg-is-dark #class-menu .class-item:hover {
+  color: #f7f7f7;
+}
+html[data-theme="dark"] .bg-is-dark #dashboard-page h1 {
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+/* 平滑渐变：让菜单和仪表盘标题在深浅切换时平滑过渡 */
+#more-menu,
+#class-menu,
+#dashboard-page {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* 禁用状态样式（用于当只有一个班级时禁用删除按钮） */
+.class-action-btn.disabled,
+.class-action-btn[disabled] {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* 当搜索打开时，把搜索栏向左推一部分，给右侧的关闭按钮留出空间
+   48px 为圆形按钮尺寸 + 边框/余量，8px 为间隙，总计 56px */
+body.search-opened #search-bar {
+  right: calc(25px + 48px + 8px);
+  max-width: calc(100% - 50px - 56px);
+}
+
+/* 登录页面 */
+.login-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  background: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  color: var(--text-color);
+}
+
+.login-container h2 {
+  margin-bottom: 20px;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  font-size: 16px;
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+.login-container label {
+  display: block;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--btn-green);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.login-container button:hover {
+  background-color: var(--btn-green-hover);
+}
+
+/* 管理页面 */
+#dashboard-page,
+#leaderboard-page {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  padding: 15px;
+  padding-top:10px;
+  margin-top:30px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+#dashboard-page h1,
+#leaderboard-page h1 {
+  text-align: center;
+  margin: 20px 0;
+  color: var(--text-color);
+}
+
+/* 提示框 */
+.notice {
+  position: relative;
+  /* 半透明 + 毛玻璃，使背景可见同时增强可读性 */
+  background-color: rgba(255,248,225,0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 15px 35px 15px 15px;
+  border-left: 5px solid var(--notice-border);
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* 随机抽选模态窗口样式 */
+#random-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 260px;
+  max-width: 80%;
+  max-height: 70vh;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--page-overlay);
+  border: 1px solid var(--menu-border);
+  box-shadow: var(--shadow);
+  z-index: 9999;
+  color: var(--text-color);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+}
+
+.random-modal-dragbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px; /* 顶部 10px 可拖动 */
+  cursor: grab;
+  z-index: 10000;
+}
+
+.random-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 44px 8px 16px; /* 给右侧关闭按钮留出空间 */
+  position: relative;
+}
+
+.random-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+  opacity: 0.95;
+}
+
+.random-modal-close {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 36px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--menu-border);
+  background: var(--menu-bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.random-modal-body {
+  padding: 12px 18px 18px 18px;
+  overflow: auto;
+  max-height: calc(70vh - 56px);
+}
+
+.random-modal-body h1 {
+  margin: 8px 0;
+  font-size: 28px;
+  text-align: center;
+  color: var(--text-color);
+  word-break: break-word;
+}
+
+/* 深色主题下的提示背景为半透明暗色，保持可读性并保留模糊 */
+[data-theme="dark"] .notice {
+  background-color: rgba(44,40,26,0.68);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* 当存在自定义背景时，对页面主体启用毛玻璃覆盖 */
+.has-custom-bg #dashboard-page,
+.has-custom-bg #leaderboard-page,
+.has-custom-bg #login-page {
+  background: var(--page-overlay);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--text-color);
+  opacity: 0.7;
+  cursor: pointer;
+  user-select: none;
+}
+
+.close-btn:hover {
+  opacity: 1;
+}
+
+/* 按钮网格 2x2 */
+.button-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.btn-blue,
+.btn-purple,
+.btn-green,
+.btn-yellow {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-yellow{
+  width: 100%;
+  text-align: center;
+}
+
+.btn-blue {
+  background-color: var(--btn-blue);
+}
+.btn-blue:hover {
+  background-color: var(--btn-blue-hover);
+}
+
+.btn-purple {
+  background-color: var(--btn-purple);
+}
+.btn-purple:hover {
+  background-color: var(--btn-purple-hover);
+}
+
+.btn-green {
+  background-color: var(--btn-green);
+}
+.btn-green:hover {
+  background-color: var(--btn-green-hover);
+}
+
+.btn-yellow {
+  background-color: var(--btn-yellow);
+}
+.btn-yellow:hover {
+  background-color: var(--btn-yellow-hover);
+}
+
+/* 学生列表 */
+.student-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.student-name {
+  flex: 1;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.student-score {
+  width: 60px;
+  text-align: center;
+  font-size: 18px;
+  color: var(--score-color);
+  font-weight: bold;
+}
+
+.student-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.student-actions button {
+  /* 使用毛玻璃背景以增强与页面风格一致性，并保持可读性 */
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-border);
+  border-radius: 5px;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.student-actions button:hover {
+  background: var(--icon-bg-hover);
+}
+
+/* Emoji 图标 */
+.add-btn::before { content: "+"; }
+.minus-btn::before { content: "-"; }
+.reset-btn::before { content: "↻"; }
+.delete-btn::before { content: "🗑️"; }
+
+/* 排行榜页面 */
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.leaderboard-header .btn-blue,
+.leaderboard-header .btn-yellow {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.leaderboard-header .btn-blue {
+  background: var(--btn-blue);
+  color: white;
+}
+.leaderboard-header .btn-blue:hover {
+  background: var(--btn-blue-hover);
+}
+
+.leaderboard-header .btn-yellow {
+  background: var(--btn-yellow);
+}
+.leaderboard-header .btn-yellow:hover {
+  background: var(--btn-yellow-hover);
+}
+
+.rank-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 18px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rank {
+  font-weight: bold;
+  width: 40px;
+}
+
+.rank-name {
+  flex: 1;
+}
+
+.rank-score {
+  color: var(--score-color);
+  font-weight: bold;
+}
