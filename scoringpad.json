@@ -3,6 +3,6 @@
     "username":"admin",
     "password":"1q2w3e4r",
     "notice":true,
-    "title":"Scoring Pad",
-    "about-info":"本项目基于Scoring Pad构建。Scoring Pad，随时随地，想计就计！\nGithub repo:https://github.com/RMDCXY/ScoringPad \n当前Scoring Pad版本：1.0"
+    "title":"ScoringPad",
+    "about-info":"本项目基于ScoringPad构建。ScoringPad,Score anytime,score more！\nGithub repo:https://github.com/RMDCXY/ScoringPad \n当前ScoringPad版本：1.0"
 }

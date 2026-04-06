@@ -188,7 +188,7 @@ function showDashboardPage() {
     // dashboard-page h1
     const dashTitle = dashboardPage.querySelector('h1');
     if (dashTitle) {
-      dashTitle.textContent = `欢迎使用${config.title}！`;
+      dashTitle.textContent = `${config.title}`;
     }
     // login-page h2
     const loginTitle = loginPage.querySelector('h2');
@@ -369,7 +369,7 @@ function createMoreMenu() {
 
   const zeroItem = document.createElement('div');
   zeroItem.className = 'more-item';
-  zeroItem.innerText = ' ↻ 一键清零';
+  zeroItem.innerText = '↻ 一键清零';
   zeroItem.addEventListener('click', (e) => {
     e.stopPropagation();
     handleResetAllScores();
@@ -576,7 +576,7 @@ function selectClass(cls) {
 
 function handleAbout() {
   closeMoreMenu();
-  const aboutText = config['about-info'] || config.about || 'Scoring Pad - 本地计分管理系统。';
+  const aboutText = config['about-info'] || config.about || 'ScoringPad - 本地计分管理系统。';
   alert(aboutText);
 }
 
@@ -1180,7 +1180,7 @@ window.addEventListener('load', async () => {
   }
   // 将自定义标题应用到浏览器标签页
   if (config.title) {
-    document.title = `欢迎使用${config.title}！`;
+    document.title = `${config.title}`;
   }
   // 登录页面显示控制
   if (config.login) {

@@ -1,10 +1,19 @@
-<!--ScoringPad ver1.0-->
+<!--
+ _____                     _               ______             _ 
+/  ___|                   (_)              | ___ \           | |
+\ `--.   ___   ___   _ __  _  _ __    __ _ | |_/ /  __ _   __| |
+ `--. \ / __| / _ \ | '__|| || '_ \  / _` ||  __/  / _` | / _` |
+/\__/ /| (__ | (_) || |   | || | | || (_| || |    | (_| || (_| |
+\____/  \___| \___/ |_|   |_||_| |_| \__, |\_|     \__,_| \__,_|
+                                      __/ |                     
+                                     |___/   Version 1.0                   
+-->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scoring Pad</title>
+  <title>ScoringPad</title>
   <link rel="stylesheet" href="style.css" />
   <!-- 引入 html2canvas 用于截屏 -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -19,7 +28,7 @@
   <!-- 登录页面 -->
   <div id="login-page" class="page">
     <div class="login-container">
-      <h2>Scoring Pad</h2>
+      <h2>ScoringPad</h2>
       <input type="text" id="username" placeholder="用户名" />
       <input type="password" id="password" placeholder="密码" />
       <label>
@@ -31,14 +40,14 @@
 
   <!-- 管理页面 -->
   <div id="dashboard-page" class="page hidden">
-    <h1>Scoring Pad</h1>
+    <h1>ScoringPad</h1>
 
     <div id="notice-box" class="notice">
       <span class="close-btn" id="close-notice">&times;</span>
-      ✨欢迎使用Scoring Pad记分模板！🎉<br />
+      ✨欢迎使用ScoringPad记分模板！🎉<br />
       ⚠️由于技术限制原因，记分使用本地存储，不存储在云端，所以请千万不要清理浏览器数据！千万不要清理浏览器数据！否则计分数据会被全部清空！！！<br />
       ⓘ如果您在更换设备时需要同步数据，可以通过下方的“导入/导出CSV”选项保存记分数据为文件，并在多设备间发送以实现数据同步。<br />
-      😄现在，点击右上角更多菜单，立即添加学生开始使用您的Scoring Pad吧！
+      😄现在，点击右上角更多菜单，立即添加学生开始使用您的ScoringPad吧！
     </div>
 
     <button id="leaderboard-btn" class="btn-yellow">🏆排行榜</button>

@@ -1,14 +1,14 @@
 :root {
   --bg-color: #ffffff;
-  --text-color: #333333;
+  --text-color: #292929;
   --card-bg: #ffffff;
   --border-color: #eeeeee;
-  --menu-border: rgba(0,0,0,0.08);
+  --menu-border: rgba(0,0,0,0.18);
   --menu-bg: rgba(255,255,255,0.06);
   --page-overlay: rgba(255,255,255,0.28);
   --notice-bg: #fff8e1;
   --notice-border: #0095ff;
-  --shadow: 0 4px 10px rgba(0,0,0,0.1);
+  --shadow: 0 4px 15px rgba(0,0,0,0.2);
   --btn-blue: #2196F3;
   --btn-blue-hover: #1976D2;
   --btn-purple: #9c27b0;
@@ -27,7 +27,7 @@
   --text-color: #e0e0e0;
   --card-bg: #1e1e1e;
   --border-color: #333333;
-  --menu-border: rgba(255,255,255,0.06);
+  --menu-border: rgba(255,255,255,0.16);
   --menu-bg: rgba(0,0,0,0.06);
   --page-overlay: rgba(0,0,0,0.18);
   --notice-bg: #2c281a;
@@ -119,13 +119,13 @@ body {
   box-shadow: var(--shadow);
   color: var(--text-color);
   /* 放慢背景渐变并添加位置、透明度过渡；保持 transform 快速反馈 */
-  transition: background-color 0.4s ease, right 0.4s ease, opacity 0.2s ease, transform 0.08s;
+  transition: background-color 0.4s ease, right 0.4s ease, opacity 0.2s ease, transform 0.2s;
 }
 .theme-toggle:hover,
 #search-toggle:hover,
 #more-toggle:hover,
 #class-toggle:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 /* 搜索条样式（在激活搜索时显示） */
@@ -356,7 +356,7 @@ html[data-theme="dark"] .bg-is-dark #class-menu .class-item:hover {
   color: #f7f7f7;
 }
 html[data-theme="dark"] .bg-is-dark #dashboard-page h1 {
-  color: #ffffff;
+  color: #dbdbdb;
   text-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
@@ -496,17 +496,17 @@ body.search-opened #search-bar {
   top: 0;
   left: 0;
   right: 0;
-  height: 10px; /* 顶部 10px 可拖动 */
+  height: 45px;
   cursor: grab;
   z-index: 10000;
+  margin-right: 50px;
 }
 
 .random-modal-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 44px 8px 16px; /* 给右侧关闭按钮留出空间 */
-  position: relative;
+  padding: 10px 44px 8px 16px;
 }
 
 .random-modal-title {
@@ -667,9 +667,10 @@ body.search-opened #search-bar {
   /* 使用毛玻璃背景以增强与页面风格一致性，并保持可读性 */
   background: var(--menu-bg);
   border: 1px solid var(--menu-border);
-  border-radius: 5px;
-  width: 30px;
-  height: 30px;
+  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
   font-size: 16px;
   cursor: pointer;
   color: var(--text-color);
@@ -679,6 +680,8 @@ body.search-opened #search-bar {
   transition: background-color 0.2s;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  line-height: 1;
+  background-clip: padding-box;
 }
 
 .student-actions button:hover {
