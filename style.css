@@ -644,6 +644,97 @@ body.search-opened #search-bar {
   color: var(--text-color);
 }
 
+#students-list.two-column-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+#students-list.two-column-layout .student-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+  background: transparent;
+  border-radius: 0;
+  color: var(--text-color);
+  gap: 12px;
+  min-height: 52px;
+}
+
+#students-list.two-column-layout .student-name {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+#students-list.two-column-layout .student-score {
+  width: 60px;
+  text-align: center;
+  font-size: 18px;
+  color: var(--score-color);
+  margin: 0;
+}
+
+#students-list.two-column-layout .student-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* 在较宽屏上（非手机），紧凑模式下隐藏姓名与分数，保留动作按钮 */
+@media (min-width: 521px) {
+  #students-list.two-column-layout.compact-two-column .student-name,
+  #students-list.two-column-layout.compact-two-column .student-score {
+    display: none;
+  }
+  #students-list.two-column-layout.compact-two-column .reset-btn,
+  #students-list.two-column-layout.compact-two-column .delete-btn {
+    display: none;
+  }
+  #students-list.two-column-layout.compact-two-column .student-actions {
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+}
+
+/* 手机端紧凑模式：显示姓名与分数为竖排，但隐藏清零/删除按钮 */
+@media (max-width: 520px) {
+  /* 当两列紧凑时，将每个项改为纵向展示姓名/分数 */
+  #students-list.two-column-layout.compact-two-column .student-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px 6px;
+    min-height: auto;
+  }
+
+  #students-list.two-column-layout.compact-two-column .student-name,
+  #students-list.two-column-layout.compact-two-column .student-score {
+    display: block;
+    width: 100%;
+  }
+
+  #students-list.two-column-layout.compact-two-column .student-score {
+    margin-top: 6px;
+    text-align: left;
+    font-size: 16px;
+  }
+
+  /* 隐藏清零与删除按钮以保留空间 */
+  #students-list.two-column-layout.compact-two-column .reset-btn,
+  #students-list.two-column-layout.compact-two-column .delete-btn {
+    display: none;
+  }
+
+  /* 确保动作按钮靠左并有小间隔 */
+  #students-list.two-column-layout.compact-two-column .student-actions {
+    margin-left: 0;
+    gap: 6px;
+  }
+}
+
 .student-name {
   flex: 1;
   font-size: 18px;
@@ -686,6 +777,16 @@ body.search-opened #search-bar {
 
 .student-actions button:hover {
   background: var(--icon-bg-hover);
+}
+
+/* 手机端两列时按钮稍微缩小，避免占位过大 */
+@media (max-width: 520px) {
+  #students-list.two-column-layout .student-actions button {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  #students-list.two-column-layout { gap: 10px; }
 }
 
 /* Emoji 图标 */

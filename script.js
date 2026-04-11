@@ -22,6 +22,8 @@ const rankedList = document.getElementById('ranked-list');
 const closeNoticeBtn = document.getElementById('close-notice');
 const fileInput = document.getElementById('file-input');
 
+let isTwoColumnLayout = false;
+
 
 // ========== 配置加载 ==========
 let config = {
@@ -353,6 +355,11 @@ function createMoreMenu() {
   exportItem.innerText = '📄 导出CSV';
   exportItem.addEventListener('click', (e) => { e.stopPropagation(); exportCsvAction(); closeMoreMenu(); });
 
+  const layoutItem = document.createElement('div');
+  layoutItem.className = 'more-item';
+  layoutItem.innerText = '🔍 排列方式';
+  layoutItem.addEventListener('click', (e) => { e.stopPropagation(); toggleStudentLayout(); });
+
   const randomItem = document.createElement('div');
   randomItem.className = 'more-item';
   randomItem.innerText = '🎲 随机抽选';
@@ -387,6 +394,7 @@ function createMoreMenu() {
   menu.appendChild(batchItem);
   menu.appendChild(importItem);
   menu.appendChild(exportItem);
+  menu.appendChild(layoutItem);
   menu.appendChild(randomItem);
   menu.appendChild(clearItem);
   menu.appendChild(zeroItem);
@@ -579,6 +587,48 @@ function handleAbout() {
   const aboutText = config['about-info'] || config.about || 'ScoringPad - 本地计分管理系统。';
   alert(aboutText);
 }
+function loadLayoutMode() {
+  const mode = localStorage.getItem('studentLayoutMode');
+  isTwoColumnLayout = mode === 'two';
+}
+
+function saveLayoutMode() {
+  localStorage.setItem('studentLayoutMode', isTwoColumnLayout ? 'two' : 'single');
+}
+
+function updateStudentListLayout() {
+  if (!studentsList) return;
+  // 为避免手机端将内容全部隐藏：在小屏幕上强制使用单列
+  // 允许在手机端也切换两列（紧凑模式会处理过窄显示）
+  studentsList.classList.toggle('two-column-layout', isTwoColumnLayout);
+}
+
+function updateStudentListCompactMode() {
+  if (!studentsList) return;
+  // 紧凑模式仅在实际启用了两列布局时考虑
+  if (!studentsList.classList.contains('two-column-layout')) {
+    studentsList.classList.remove('compact-two-column');
+    return;
+  }
+  // 使用真实列宽计算（考虑 gap），避免容器内 padding/滚动导致误判
+  const rect = studentsList.getBoundingClientRect();
+  const style = window.getComputedStyle(studentsList);
+  // 解析 gap（grid column gap），若不存在则回退到 12px
+  let gap = parseFloat(style.columnGap || style.gap || '12');
+  if (isNaN(gap)) gap = 12;
+  const available = Math.max(0, rect.width - gap);
+  const colWidth = available / 2;
+  // 如果每列宽度小于阈值则启用紧凑模式；阈值设为 110px（更保守）
+  const compact = colWidth < 110;
+  studentsList.classList.toggle('compact-two-column', compact);
+}
+
+function toggleStudentLayout() {
+  isTwoColumnLayout = !isTwoColumnLayout;
+  saveLayoutMode();
+  closeMoreMenu();
+  renderStudents();
+}
 
 function generateConfirmCode() {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -693,6 +743,7 @@ function renderStudents(filter) {
     .filter(item => (q ? item.s.name.toLowerCase().includes(q) : true));
 
   studentsList.innerHTML = '';
+  // 布局与紧凑模式将在渲染完学生项后计算，以使用正确的容器尺寸
 
   list.forEach(({ s: student, i: originalIndex }) => {
     const div = document.createElement('div');
@@ -740,6 +791,10 @@ function renderStudents(filter) {
 
     studentsList.appendChild(div);
   });
+
+  // 渲染完成后再应用布局与紧凑判断，避免在空容器上误判
+  updateStudentListLayout();
+  updateStudentListCompactMode();
 }
 
 function renderLeaderboard() {
@@ -1146,6 +1201,11 @@ if (closeNoticeBtn) {
 if (leaderboardBtn) leaderboardBtn.addEventListener('click', showLeaderboardPage);
 if (backBtn) backBtn.addEventListener('click', showDashboardPage);
 
+window.addEventListener('resize', () => {
+  updateStudentListLayout();
+  updateStudentListCompactMode();
+});
+
 // ========== 登录 ==========
 if (loginBtn) {
   loginBtn.addEventListener('click', () => {
@@ -1178,6 +1238,8 @@ window.addEventListener('load', async () => {
     currentClass = classes && classes.length ? classes[0] : '班级1';
     localStorage.setItem('currentClass', currentClass);
   }
+  // 读取布局设置
+  loadLayoutMode();
   // 将自定义标题应用到浏览器标签页
   if (config.title) {
     document.title = `${config.title}`;
