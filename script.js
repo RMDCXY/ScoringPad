@@ -23,6 +23,8 @@ const closeNoticeBtn = document.getElementById('close-notice');
 const fileInput = document.getElementById('file-input');
 
 let isTwoColumnLayout = false;
+let _layoutDisabledByWidth = false; // 当窗口过窄时，更多菜单中的排列选项被禁用
+let _prevLayoutBeforeForce = null; // 记录被强制前的排列方式，以便恢复
 
 
 // ========== 配置加载 ==========
@@ -357,8 +359,13 @@ function createMoreMenu() {
 
   const layoutItem = document.createElement('div');
   layoutItem.className = 'more-item';
+  layoutItem.id = 'more-layout-item';
   layoutItem.innerText = '🔍 排列方式';
-  layoutItem.addEventListener('click', (e) => { e.stopPropagation(); toggleStudentLayout(); });
+  if (_layoutDisabledByWidth) {
+    layoutItem.classList.add('disabled');
+  } else {
+    layoutItem.addEventListener('click', (e) => { e.stopPropagation(); toggleStudentLayout(); });
+  }
 
   const randomItem = document.createElement('div');
   randomItem.className = 'more-item';
@@ -402,6 +409,45 @@ function createMoreMenu() {
   document.body.appendChild(menu);
   _moreMenuEl = menu;
   return menu;
+}
+
+function updateLayoutOptionByWidth() {
+  const narrow = window.innerWidth < 600;
+  if (narrow) {
+    if (!_layoutDisabledByWidth) {
+      _layoutDisabledByWidth = true;
+      _prevLayoutBeforeForce = isTwoColumnLayout;
+      if (isTwoColumnLayout) {
+        isTwoColumnLayout = false;
+        renderStudents();
+      }
+      // 如果菜单已经存在，禁用对应项（并移除事件）
+      const li = document.querySelector('#more-menu .more-item#more-layout-item');
+      if (li) {
+        const clone = li.cloneNode(true);
+        clone.classList.add('disabled');
+        li.parentNode.replaceChild(clone, li);
+      }
+    }
+  } else {
+    if (_layoutDisabledByWidth) {
+      _layoutDisabledByWidth = false;
+      if (_prevLayoutBeforeForce !== null) {
+        isTwoColumnLayout = _prevLayoutBeforeForce;
+        _prevLayoutBeforeForce = null;
+        renderStudents();
+      }
+      // 如果菜单存在，恢复对应项的点击行为
+      const li = document.querySelector('#more-menu .more-item#more-layout-item');
+      if (li) {
+        const clone = li.cloneNode(true);
+        clone.id = 'more-layout-item';
+        clone.classList.remove('disabled');
+        clone.addEventListener('click', (e) => { e.stopPropagation(); toggleStudentLayout(); });
+        li.parentNode.replaceChild(clone, li);
+      }
+    }
+  }
 }
 
 function toggleMoreMenu() {
@@ -598,8 +644,7 @@ function saveLayoutMode() {
 
 function updateStudentListLayout() {
   if (!studentsList) return;
-  // 为避免手机端将内容全部隐藏：在小屏幕上强制使用单列
-  // 允许在手机端也切换两列（紧凑模式会处理过窄显示）
+  // 更新 student-list 的两列/单列类（不再包含针对手机端的特殊处理）
   studentsList.classList.toggle('two-column-layout', isTwoColumnLayout);
 }
 
@@ -1204,6 +1249,7 @@ if (backBtn) backBtn.addEventListener('click', showDashboardPage);
 window.addEventListener('resize', () => {
   updateStudentListLayout();
   updateStudentListCompactMode();
+  updateLayoutOptionByWidth();
 });
 
 // ========== 登录 ==========
@@ -1258,6 +1304,8 @@ window.addEventListener('load', async () => {
     showDashboardPage();
     loginPage.style.display = 'none';
   }
+  // 根据当前窗口宽度强制或恢复排列方式选项状态
+  updateLayoutOptionByWidth();
 });
 
 // ========== 自定义背景与模糊控制 ==========

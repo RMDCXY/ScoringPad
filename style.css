@@ -172,6 +172,14 @@ body {
   background: rgba(0,0,0,0.06);
 }
 
+/* 更多菜单中项的禁用样式（用于窗口过窄时禁用排列方式项） */
+#more-menu .more-item.disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+  color: var(--text-color);
+}
+
 #more-menu {
   will-change: transform, opacity;
   animation: slideFadeDown 180ms ease-out both;
@@ -670,9 +678,9 @@ body.search-opened #search-bar {
 }
 
 #students-list.two-column-layout .student-score {
-  width: 60px;
+  width: 48px;
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--score-color);
   margin: 0;
 }
@@ -742,16 +750,16 @@ body.search-opened #search-bar {
 }
 
 .student-score {
-  width: 60px;
+  width: 48px;
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--score-color);
   font-weight: bold;
 }
 
 .student-actions {
   display: flex;
-  gap: 5px;
+  gap: 4px;
 }
 
 .student-actions button {
@@ -759,10 +767,10 @@ body.search-opened #search-bar {
   background: var(--menu-bg);
   border: 1px solid var(--menu-border);
   border-radius: 6px;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   padding: 0;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   color: var(--text-color);
   display: flex;
@@ -782,9 +790,9 @@ body.search-opened #search-bar {
 /* 手机端两列时按钮稍微缩小，避免占位过大 */
 @media (max-width: 520px) {
   #students-list.two-column-layout .student-actions button {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
   }
   #students-list.two-column-layout { gap: 10px; }
 }
