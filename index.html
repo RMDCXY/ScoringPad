@@ -25,24 +25,12 @@
   <button id="class-toggle" class="theme-toggle">🏫</button>
   <button id="theme-toggle" class="theme-toggle"></button>
   
-  <!-- 登录页面 -->
-  <div id="login-page" class="page">
-    <div class="login-container">
-      <h2>ScoringPad</h2>
-      <input type="text" id="username" placeholder="用户名" />
-      <input type="password" id="password" placeholder="密码" />
-      <label>
-        <input type="checkbox" id="auto-login" /> 自动登录
-      </label>
-      <button id="login-btn">登录</button>
-    </div>
-  </div>
-
   <!-- 管理页面 -->
   <div id="dashboard-page" class="page hidden">
     <h1>ScoringPad</h1>
 
     <div id="notice-box" class="notice">
+      <button class="dismiss-notice-btn" id="dismiss-notice" type="button">不再提示</button>
       <span class="close-btn" id="close-notice">&times;</span>
       ✨欢迎使用ScoringPad记分模板！🎉<br />
       ⚠️由于技术限制原因，记分使用本地存储，不存储在云端，所以请千万不要清理浏览器数据！千万不要清理浏览器数据！否则计分数据会被全部清空！！！<br />
@@ -63,6 +51,28 @@
     </div>
     <h1>🏆 排行榜</h1>
     <div id="ranked-list"></div>
+  </div>
+
+  <!-- 随机抽选页面 -->
+  <div id="random-pick-page" class="page hidden">
+    <div class="leaderboard-header">
+      <button id="random-pick-back-btn" class="btn-blue">← 返回</button>
+    </div>
+    <h1>🎲 随机抽选</h1>
+    <div class="random-pick-controls">
+      <div class="pick-count-selector" aria-label="抽选人数">
+        <button id="pick-count-decrease" type="button" aria-label="减少抽选人数">−</button>
+        <output id="pick-count" for="pick-count-decrease pick-count-increase">1</output>
+        <button id="pick-count-increase" type="button" aria-label="增加抽选人数">+</button>
+      </div>
+      <label class="advanced-pick-toggle">
+        <input id="advanced-pick" type="checkbox" />
+        <span>高级抽选</span>
+      </label>
+      <div id="pick-student-list" class="pick-student-list hidden"></div>
+      <button id="start-random-pick" class="btn-yellow" type="button">开始抽选</button>
+      <div id="random-pick-result" class="random-pick-result hidden" aria-live="polite"><span id="random-pick-result-text"></span></div>
+    </div>
   </div>
 
   <!-- 隐藏的文件输入用于导入 -->

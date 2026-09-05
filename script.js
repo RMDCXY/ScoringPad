@@ -3,37 +3,95 @@ const themeToggle = document.getElementById('theme-toggle');
 const searchToggle = document.getElementById('search-toggle');
 const moreToggle = document.getElementById('more-toggle');
 const classToggle = document.getElementById('class-toggle');
-const loginPage = document.getElementById('login-page');
 const dashboardPage = document.getElementById('dashboard-page');
 const leaderboardPage = document.getElementById('leaderboard-page');
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
-const autoLoginCheckbox = document.getElementById('auto-login');
-const loginBtn = document.getElementById('login-btn');
+const randomPickPage = document.getElementById('random-pick-page');
 const addStudentBtn = document.getElementById('add-student-btn');
 const batchAddBtn = document.getElementById('batch-add-btn');
 const importCsvBtn = document.getElementById('import-csv-btn');
 const exportCsvBtn = document.getElementById('export-csv-btn');
 const leaderboardBtn = document.getElementById('leaderboard-btn');
 const backBtn = document.getElementById('back-btn');
+const randomPickBackBtn = document.getElementById('random-pick-back-btn');
 const screenshotBtn = document.getElementById('screenshot-btn');
 const studentsList = document.getElementById('students-list');
 const rankedList = document.getElementById('ranked-list');
+const pickCountOutput = document.getElementById('pick-count');
+const pickCountDecrease = document.getElementById('pick-count-decrease');
+const pickCountIncrease = document.getElementById('pick-count-increase');
+const advancedPick = document.getElementById('advanced-pick');
+const pickStudentList = document.getElementById('pick-student-list');
+const startRandomPick = document.getElementById('start-random-pick');
+const randomPickResult = document.getElementById('random-pick-result');
+const randomPickResultText = document.getElementById('random-pick-result-text');
 const closeNoticeBtn = document.getElementById('close-notice');
+const dismissNoticeBtn = document.getElementById('dismiss-notice');
 const fileInput = document.getElementById('file-input');
+
+const noticeCookieName = 'scoringpad_notice_dismissed';
+
+const aboutInfo = '本项目基于ScoringPad构建。ScoringPad,Score anytime,score more！\nGithub repo:https://github.com/RMDCXY/ScoringPad \n本项目使用vibe coding实现。\n当前ScoringPad版本：1.';
+
+function hasDismissedNotice() {
+  return document.cookie.split('; ').some(cookie => cookie.startsWith(`${noticeCookieName}=`));
+}
+
+function hideNotice() {
+  const notice = document.getElementById('notice-box');
+  if (notice) notice.style.display = 'none';
+}
+
+if (hasDismissedNotice()) hideNotice();
 
 let isTwoColumnLayout = false;
 let _layoutDisabledByWidth = false; // 当窗口过窄时，更多菜单中的排列选项被禁用
 let _prevLayoutBeforeForce = null; // 记录被强制前的排列方式，以便恢复
 
 
-// ========== 配置加载 ==========
-let config = {
-  login: true,
-  username: 'admin',
-  password: '1q2w3e4r',
-  notice: true
-};
+// 仅为表情符号应用 Fluent Emoji，普通文字继续使用页面默认字体
+const emojiPattern = /(\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*|\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3)/gu;
+
+function markEmojis(root) {
+  if (!(root instanceof Node)) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.parentElement && node.parentElement.closest('script, style, .emoji')) continue;
+    if (emojiPattern.test(node.nodeValue)) textNodes.push(node);
+    emojiPattern.lastIndex = 0;
+  }
+
+  textNodes.forEach(textNode => {
+    const fragment = document.createDocumentFragment();
+    let lastIndex = 0;
+    emojiPattern.lastIndex = 0;
+    let match;
+    while ((match = emojiPattern.exec(textNode.nodeValue))) {
+      fragment.appendChild(document.createTextNode(textNode.nodeValue.slice(lastIndex, match.index)));
+      const emoji = document.createElement('span');
+      emoji.className = 'emoji';
+      emoji.textContent = match[0];
+      fragment.appendChild(emoji);
+      lastIndex = match.index + match[0].length;
+    }
+    fragment.appendChild(document.createTextNode(textNode.nodeValue.slice(lastIndex)));
+    if (textNode.parentNode) textNode.parentNode.replaceChild(fragment, textNode);
+  });
+}
+
+markEmojis(document.body);
+new MutationObserver(records => {
+  records.forEach(record => {
+    record.addedNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (node.parentElement) markEmojis(node.parentElement);
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        markEmojis(node);
+      }
+    });
+  });
+}).observe(document.body, { childList: true, subtree: true });
 
 // ========== 班级管理 ==========
 let classes = null; // will be loaded from storage
@@ -113,20 +171,6 @@ function deleteClassByName(name) {
   return true;
 }
 
-// 读取 scoringpad.json 配置
-async function loadConfig() {
-  try {
-    const res = await fetch('scoringpad.json?_=' + Date.now());
-    if (res.ok) {
-      const json = await res.json();
-      config = Object.assign(config, json);
-    }
-  } catch (e) {
-    // 读取失败则用默认配置
-    console.warn('配置文件读取失败，使用默认配置', e);
-  }
-}
-
 // ========== 主题管理 ==========
 function updateThemeIcon() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -176,53 +220,55 @@ if (classToggle) {
 setTheme(getPreferredTheme());
 
 // ========== 页面切换 ==========
-function showLoginPage() {
-  loginPage.classList.remove('hidden');
-  dashboardPage.classList.add('hidden');
-  leaderboardPage.classList.add('hidden');
+let randomPickFlashTimer = null;
+let confettiTimer = null;
+let randomPickInProgress = false;
+
+function setRandomPickBusy(isBusy) {
+  randomPickInProgress = isBusy;
+  if (!startRandomPick) return;
+  startRandomPick.disabled = isBusy;
+  startRandomPick.setAttribute('aria-disabled', String(isBusy));
+  startRandomPick.classList.toggle('is-picking', isBusy);
+}
+
+function clearRandomPickEffects() {
+  if (randomPickFlashTimer) {
+    clearInterval(randomPickFlashTimer);
+    randomPickFlashTimer = null;
+  }
+  if (confettiTimer) {
+    clearTimeout(confettiTimer);
+    confettiTimer = null;
+  }
+  document.querySelectorAll('.random-pick-confetti').forEach(element => element.remove());
+  setRandomPickBusy(false);
 }
 
 function showDashboardPage() {
-  loginPage.classList.add('hidden');
+  clearRandomPickEffects();
   dashboardPage.classList.remove('hidden');
   leaderboardPage.classList.add('hidden');
+  randomPickPage.classList.add('hidden');
   renderStudents();
-  // 根据配置设置大标题
-  if (config.title) {
-    // dashboard-page h1
-    const dashTitle = dashboardPage.querySelector('h1');
-    if (dashTitle) {
-      dashTitle.textContent = `${config.title}`;
-    }
-    // login-page h2
-    const loginTitle = loginPage.querySelector('h2');
-    if (loginTitle) {
-      loginTitle.textContent = config.title;
-    }
-  }
-  // 根据配置显示/隐藏 notice-box，并设置内容
-  const noticeBox = document.getElementById('notice-box');
-  if (noticeBox) {
-    noticeBox.style.display = config.notice ? '' : 'none';
-    if (typeof config.notice === 'string') {
-      // 支持自定义内容
-      // 保留关闭按钮
-      const closeBtn = noticeBox.querySelector('.close-btn');
-      noticeBox.innerHTML = '';
-      if (closeBtn) noticeBox.appendChild(closeBtn);
-      // 插入自定义内容
-      const content = document.createElement('div');
-      content.innerHTML = config.notice;
-      noticeBox.appendChild(content);
-    }
-  }
 }
 
 function showLeaderboardPage() {
-  loginPage.classList.add('hidden');
+  clearRandomPickEffects();
   dashboardPage.classList.add('hidden');
   leaderboardPage.classList.remove('hidden');
+  randomPickPage.classList.add('hidden');
   renderLeaderboard();
+}
+
+function showRandomPickPage() {
+  clearRandomPickEffects();
+  dashboardPage.classList.add('hidden');
+  leaderboardPage.classList.add('hidden');
+  randomPickPage.classList.remove('hidden');
+  renderPickStudents();
+  updatePickCount();
+  randomPickResult.classList.add('hidden');
 }
 
 // ========== 搜索功能 ==========
@@ -318,6 +364,7 @@ function closeSearch() {
   // 恢复内容渲染
   if (!dashboardPage.classList.contains('hidden')) renderStudents();
   if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
+  if (!randomPickPage.classList.contains('hidden')) renderPickStudents();
 }
 
 function performSearch(query) {
@@ -370,7 +417,7 @@ function createMoreMenu() {
   const randomItem = document.createElement('div');
   randomItem.className = 'more-item';
   randomItem.innerText = '🎲 随机抽选';
-  randomItem.addEventListener('click', (e) => { e.stopPropagation(); randomPickUI(); closeMoreMenu(); });
+  randomItem.addEventListener('click', (e) => { e.stopPropagation(); showRandomPickPage(); closeMoreMenu(); });
 
   // 原有的清空/清零/关于项
   const clearItem = document.createElement('div');
@@ -586,6 +633,7 @@ function openClassMenu() {
     closeClassMenu();
     if (!dashboardPage.classList.contains('hidden')) renderStudents();
     if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
+    if (!randomPickPage.classList.contains('hidden')) renderPickStudents();
     // 提示用户创建成功
     alert(`✔ 成功添加班级【${currentClass}】`);
   });
@@ -623,6 +671,7 @@ function selectClass(cls) {
     closeClassMenu();
     if (!dashboardPage.classList.contains('hidden')) renderStudents();
     if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
+    if (!randomPickPage.classList.contains('hidden')) renderPickStudents();
   } else {
     closeClassMenu();
   }
@@ -630,8 +679,7 @@ function selectClass(cls) {
 
 function handleAbout() {
   closeMoreMenu();
-  const aboutText = config['about-info'] || config.about || 'ScoringPad - 本地计分管理系统。';
-  alert(aboutText);
+  alert(aboutInfo);
 }
 function loadLayoutMode() {
   const mode = localStorage.getItem('studentLayoutMode');
@@ -709,10 +757,9 @@ async function handleClearData() {
     }
     toRemove.forEach(k => localStorage.removeItem(k));
 
-    // 2) 删除 classes 与 currentClass（以及 autoLogin）等会话数据
+    // 2) 删除 classes 与 currentClass 等会话数据
     localStorage.removeItem('classes');
     localStorage.removeItem('currentClass');
-    localStorage.removeItem('autoLogin');
 
     // 3) 为保持当前会话可用，重置内存中的 classes/currentClass 为默认值（但不立即持久化）
     classes = ['班级1'];
@@ -906,152 +953,115 @@ function batchAddUI() {
 }
 
 // ========== 随机抽选功能 ==========
-function randomPickUI() {
-  // 确保班级和学生已加载
-  if (!classes) loadClasses();
+let pickCount = 1;
+
+function getPickCandidates() {
   const students = loadStudents();
-  if (!students || students.length === 0) {
-    alert('❌ 当前班级没有学生，无法抽选！');
-    return;
-  }
-
-  const input = prompt('🎲 请输入抽选人数', '1');
-  if (input === null) return; // 用户取消
-  const n = parseInt((input || '').trim(), 10);
-  if (isNaN(n) || n <= 0) {
-    alert('❌ 请输入有效的整数抽选人数！');
-    return;
-  }
-  if (n > students.length) {
-    alert('❌ 抽选人数大于班级人数，无法抽选！');
-    return;
-  }
-
-  // 随机不重复抽取 n 个学生
-  const names = students.map(s => s.name);
-  const picked = [];
-  const used = new Set();
-  while (picked.length < n) {
-    const idx = Math.floor(Math.random() * names.length);
-    if (used.has(idx)) continue;
-    used.add(idx);
-    picked.push(names[idx]);
-  }
-
-  createRandomModal(picked);
-}
-
-function createRandomModal(pickedNames) {
-  // 创建模态窗口容器
-  const modal = document.createElement('div');
-  modal.id = 'random-modal';
-
-  // 顶部 10px 可拖动区域（绝对位置）
-  const dragBar = document.createElement('div');
-  dragBar.className = 'random-modal-dragbar';
-  modal.appendChild(dragBar);
-
-  // 头部：标题 + 关闭按钮（标题居中，关闭按钮在右上角）
-  const header = document.createElement('div');
-  header.className = 'random-modal-header';
-
-  const title = document.createElement('div');
-  title.className = 'random-modal-title';
-  title.textContent = '🎲 抽选结果';
-
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'random-modal-close';
-  closeBtn.type = 'button';
-  closeBtn.innerText = '❌';
-  closeBtn.title = '关闭';
-  closeBtn.addEventListener('click', () => {
-    // 移除并清理监听器
-    if (modal && modal.parentNode) modal.parentNode.removeChild(modal);
-    // 移除全局拖拽监听（如果存在）
-    window.removeEventListener('pointermove', _rmPointerMove);
-    window.removeEventListener('pointerup', _rmPointerUp);
-    // 移除键盘关闭监听
-    try { window.removeEventListener('keydown', _onKey); } catch (e) {}
+  if (!advancedPick.checked) return students;
+  return students.filter((student, index) => {
+    const checkbox = pickStudentList.querySelector(`input[data-student-index="${index}"]`);
+    return checkbox && checkbox.checked;
   });
-
-  header.appendChild(title);
-  header.appendChild(closeBtn);
-  modal.appendChild(header);
-
-  // 内容区域，展示姓名（每个姓名一行，大标题样式）
-  const body = document.createElement('div');
-  body.className = 'random-modal-body';
-  if (Array.isArray(pickedNames)) {
-    pickedNames.forEach(name => {
-      const h = document.createElement('h1');
-      h.textContent = name;
-      body.appendChild(h);
-    });
-  } else {
-    const h = document.createElement('h1');
-    h.textContent = String(pickedNames || '');
-    body.appendChild(h);
-  }
-  modal.appendChild(body);
-
-  // 添加到文档并居中
-  document.body.appendChild(modal);
-
-  // 拖拽实现（使用 dragBar 做为抓取区域）
-  let dragging = false;
-  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
-
-  function _onPointerDown(e) {
-    e.preventDefault();
-    dragging = true;
-    const rect = modal.getBoundingClientRect();
-    // 如果 modal 使用 transform 居中，先把当前位置转换为 left/top 绝对坐标
-    if (modal.style.transform && modal.style.transform.indexOf('translate') !== -1) {
-      modal.style.left = rect.left + 'px';
-      modal.style.top = rect.top + 'px';
-      modal.style.transform = 'none';
-    }
-    startX = e.clientX;
-    startY = e.clientY;
-    startLeft = parseFloat(modal.style.left || rect.left);
-    startTop = parseFloat(modal.style.top || rect.top);
-    // 绑定全局 move/up，以便在移动到窗口外部也能持续拖拽
-    window.addEventListener('pointermove', _rmPointerMove);
-    window.addEventListener('pointerup', _rmPointerUp);
-  }
-
-  function _rmPointerMove(e) {
-    if (!dragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    modal.style.left = (startLeft + dx) + 'px';
-    modal.style.top = (startTop + dy) + 'px';
-  }
-
-  function _rmPointerUp(e) {
-    if (!dragging) return;
-    dragging = false;
-    try { window.removeEventListener('pointermove', _rmPointerMove); } catch (e) {}
-    try { window.removeEventListener('pointerup', _rmPointerUp); } catch (e) {}
-  }
-
-  // 将函数引用暴露以便关闭时移除
-  window._rmPointerMove = _rmPointerMove;
-  window._rmPointerUp = _rmPointerUp;
-
-  dragBar.addEventListener('pointerdown', _onPointerDown);
-
-  // 可访问性：按 Esc 关闭
-  function _onKey(e) {
-    if (e.key === 'Escape') {
-      if (modal && modal.parentNode) modal.parentNode.removeChild(modal);
-      window.removeEventListener('pointermove', _rmPointerMove);
-      window.removeEventListener('pointerup', _rmPointerUp);
-      window.removeEventListener('keydown', _onKey);
-    }
-  }
-  window.addEventListener('keydown', _onKey);
 }
+
+function updatePickCount() {
+  const total = getPickCandidates().length || loadStudents().length;
+  pickCount = Math.max(1, Math.min(pickCount, total || 1));
+  pickCountOutput.textContent = pickCount;
+  pickCountDecrease.disabled = pickCount <= 1;
+  pickCountIncrease.disabled = pickCount >= total;
+}
+
+function renderPickStudents() {
+  const students = loadStudents();
+  pickStudentList.innerHTML = '';
+  students.forEach((student, index) => {
+    const label = document.createElement('label');
+    label.className = 'pick-student-item';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = true;
+    checkbox.dataset.studentIndex = index;
+    checkbox.addEventListener('change', updatePickCount);
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(student.name));
+    pickStudentList.appendChild(label);
+  });
+  updatePickCount();
+}
+
+function pickRandomNames(candidates, count) {
+  return candidates.slice().sort(() => Math.random() - 0.5).slice(0, count).map(student => student.name);
+}
+
+function showPickResult(names) {
+  randomPickResultText.textContent = names.join('、');
+}
+
+function flashPickResult(names) {
+  showPickResult(names);
+}
+
+function showConfetti() {
+  clearRandomPickEffects();
+  const colors = ['#2196F3', '#FFC107', '#4CAF50', '#e91e63', '#ff7043'];
+  const container = document.createElement('div');
+  container.className = 'random-pick-confetti';
+  for (let index = 0; index < 80; index += 1) {
+    const piece = document.createElement('span');
+    piece.style.setProperty('--confetti-color', colors[index % colors.length]);
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.top = `${-(18 + Math.random() * 90)}px`;
+    piece.style.setProperty('--confetti-duration', '12s');
+    piece.style.setProperty('--confetti-drift', `${(Math.random() - 0.5) * 180}px`);
+    piece.style.setProperty('--confetti-rotation', `${Math.random() * 720 - 360}deg`);
+    container.appendChild(piece);
+  }
+  document.body.appendChild(container);
+  confettiTimer = setTimeout(() => {
+    container.remove();
+    confettiTimer = null;
+  }, 12000);
+}
+
+function runRandomPick() {
+  if (randomPickInProgress) return;
+  const candidates = getPickCandidates();
+  if (candidates.length === 0) {
+    alert('❌ 没有可抽选的学生！');
+    return;
+  }
+  if (pickCount > candidates.length) {
+    alert('❌ 抽选人数不能大于可抽选学生数！');
+    updatePickCount();
+    return;
+  }
+
+  setRandomPickBusy(true);
+  randomPickResult.classList.remove('hidden');
+  randomPickResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  let flashCount = 0;
+  randomPickFlashTimer = setInterval(() => {
+    flashPickResult(pickRandomNames(candidates, pickCount));
+    flashCount += 1;
+    if (flashCount >= 20) {
+      clearInterval(randomPickFlashTimer);
+      randomPickFlashTimer = null;
+      showPickResult(pickRandomNames(candidates, pickCount));
+      setRandomPickBusy(false);
+      showConfetti();
+    }
+  }, 150);
+  showPickResult(pickRandomNames(candidates, pickCount));
+}
+
+if (pickCountDecrease) pickCountDecrease.addEventListener('click', () => { pickCount -= 1; updatePickCount(); });
+if (pickCountIncrease) pickCountIncrease.addEventListener('click', () => { pickCount += 1; updatePickCount(); });
+if (advancedPick) advancedPick.addEventListener('change', () => {
+  pickStudentList.classList.toggle('hidden', !advancedPick.checked);
+  updatePickCount();
+});
+if (startRandomPick) startRandomPick.addEventListener('click', runRandomPick);
 
 function exportCsvAction() {
   const students = loadStudents();
@@ -1238,13 +1248,20 @@ if (screenshotBtn) {
 // ========== UI 交互 ==========
 if (closeNoticeBtn) {
   closeNoticeBtn.addEventListener('click', () => {
-    const nb = document.getElementById('notice-box');
-    if (nb) nb.style.display = 'none';
+    hideNotice();
+  });
+}
+
+if (dismissNoticeBtn) {
+  dismissNoticeBtn.addEventListener('click', () => {
+    document.cookie = `${noticeCookieName}=1; max-age=31536000; path=/; SameSite=Lax`;
+    hideNotice();
   });
 }
 
 if (leaderboardBtn) leaderboardBtn.addEventListener('click', showLeaderboardPage);
 if (backBtn) backBtn.addEventListener('click', showDashboardPage);
+if (randomPickBackBtn) randomPickBackBtn.addEventListener('click', showDashboardPage);
 
 window.addEventListener('resize', () => {
   updateStudentListLayout();
@@ -1252,28 +1269,8 @@ window.addEventListener('resize', () => {
   updateLayoutOptionByWidth();
 });
 
-// ========== 登录 ==========
-if (loginBtn) {
-  loginBtn.addEventListener('click', () => {
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value.trim();
-
-  if (username === config.username && password === config.password) {
-    if (autoLoginCheckbox.checked) {
-      localStorage.setItem('autoLogin', 'true');
-    } else {
-      localStorage.removeItem('autoLogin');
-    }
-    showDashboardPage();
-  } else {
-    alert('❌ 用户名或密码错误！');
-  }
-  });
-}
-
 // ========== 初始化 ==========
-window.addEventListener('load', async () => {
-  await loadConfig();
+window.addEventListener('load', () => {
   // 恢复班级列表与选择
   loadClasses();
   const savedClass = localStorage.getItem('currentClass');
@@ -1286,104 +1283,8 @@ window.addEventListener('load', async () => {
   }
   // 读取布局设置
   loadLayoutMode();
-  // 将自定义标题应用到浏览器标签页
-  if (config.title) {
-    document.title = `${config.title}`;
-  }
-  // 登录页面显示控制
-  if (config.login) {
-    // 支持自动登录
-    const autoLogin = localStorage.getItem('autoLogin') === 'true';
-    if (autoLogin) {
-      showDashboardPage();
-    } else {
-      showLoginPage();
-    }
-  } else {
-    // 不需要登录，直接进入管理页面
-    showDashboardPage();
-    loginPage.style.display = 'none';
-  }
+  showDashboardPage();
   // 根据当前窗口宽度强制或恢复排列方式选项状态
   updateLayoutOptionByWidth();
 });
 
-// ========== 自定义背景与模糊控制 ==========
-function isMobileDevice() {
-  return /Mobi|Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
-}
-
-async function checkAndApplyBackground() {
-  const fileName = isMobileDevice() ? 'mob.png' : 'pc.png';
-  try {
-    // 尝试 HEAD 请求以检测文件是否存在
-    const res = await fetch(fileName + '?_=' + Date.now(), { method: 'HEAD' });
-    if (res.ok) {
-      const url = fileName;
-      document.body.style.backgroundImage = `url('${url}')`;
-      document.body.style.backgroundSize = 'cover';
-      document.body.style.backgroundPosition = 'center center';
-      document.body.classList.add('has-custom-bg');
-
-      // 载入图片并判断亮度，以便在颜色较暗时调整菜单/标题文字为浅色
-      try {
-        await (async () => {
-          return new Promise((resolve) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.src = url + '?_=' + Date.now();
-            img.onload = () => {
-              try {
-                const canvas = document.createElement('canvas');
-                const w = 40;
-                const h = Math.max(1, Math.round(img.height * (40 / img.width)));
-                canvas.width = w;
-                canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
-                const data = ctx.getImageData(0, 0, w, h).data;
-                let totalL = 0;
-                let count = 0;
-                for (let i = 0; i < data.length; i += 4) {
-                  const r = data[i];
-                  const g = data[i + 1];
-                  const b = data[i + 2];
-                  // 相对亮度公式
-                  const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-                  totalL += l;
-                  count++;
-                }
-                const avgL = totalL / count; // 0-255
-                // 如果平均亮度较低（阈值：80），则认为图片偏暗
-                if (avgL < 80) {
-                  document.body.classList.add('bg-is-dark');
-                } else {
-                  document.body.classList.remove('bg-is-dark');
-                }
-              } catch (e) {
-                // 处理 canvas 跨域或其他错误，保守不设置 bg-is-dark
-                console.warn('分析背景亮度失败：', e);
-              }
-              resolve();
-            };
-            img.onerror = () => resolve();
-          });
-        })();
-      } catch (e) {
-        console.warn('背景亮度检测异常：', e);
-      }
-      return;
-    }
-  } catch (e) {
-    // 忽略错误
-  }
-  // 未找到自定义背景，移除样式与类
-  document.body.style.backgroundImage = '';
-  document.body.classList.remove('has-custom-bg');
-  document.body.classList.remove('bg-is-dark');
-}
-
-// 检查背景并在窗口调整或方向改变时重新检查
-window.addEventListener('load', checkAndApplyBackground);
-window.addEventListener('resize', () => { setTimeout(checkAndApplyBackground, 200); });
-window.addEventListener('orientationchange', () => { setTimeout(checkAndApplyBackground, 200); });

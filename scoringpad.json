@@ -1,8 +1,0 @@
-{
-    "login":false,
-    "username":"admin",
-    "password":"1q2w3e4r",
-    "notice":true,
-    "title":"ScoringPad",
-    "about-info":"本项目基于ScoringPad构建。ScoringPad,score anytime,score more！\nGithub repo:https://github.com/RMDCXY/ScoringPad \n当前ScoringPad版本：1.1"
-}
