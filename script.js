@@ -29,6 +29,7 @@ const dismissNoticeBtn = document.getElementById('dismiss-notice');
 const fileInput = document.getElementById('file-input');
 
 const noticeCookieName = 'scoringpad_notice_dismissed';
+const quickOperationCookieName = 'scoringpad_quick_operation';
 
 const aboutInfo = '本项目基于ScoringPad构建。ScoringPad,Score anytime,score more！\nGithub repo:https://github.com/RMDCXY/ScoringPad \n本项目使用vibe coding实现。\n当前ScoringPad版本：1.';
 
@@ -39,6 +40,14 @@ function hasDismissedNotice() {
 function hideNotice() {
   const notice = document.getElementById('notice-box');
   if (notice) notice.style.display = 'none';
+}
+
+function isQuickOperationEnabled() {
+  return document.cookie.split('; ').some(cookie => cookie.startsWith(`${quickOperationCookieName}=1`));
+}
+
+function setQuickOperationEnabled(enabled) {
+  document.cookie = `${quickOperationCookieName}=${enabled ? '1' : '0'}; max-age=31536000; path=/; SameSite=Lax`;
 }
 
 if (hasDismissedNotice()) hideNotice();
@@ -414,6 +423,17 @@ function createMoreMenu() {
     layoutItem.addEventListener('click', (e) => { e.stopPropagation(); toggleStudentLayout(); });
   }
 
+  const quickOperationItem = document.createElement('div');
+  quickOperationItem.className = 'more-item';
+  quickOperationItem.id = 'more-quick-operation-item';
+  quickOperationItem.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setQuickOperationEnabled(!isQuickOperationEnabled());
+    updateQuickOperationMenuItem();
+    closeMoreMenu();
+  });
+  updateQuickOperationMenuItem(quickOperationItem);
+
   const randomItem = document.createElement('div');
   randomItem.className = 'more-item';
   randomItem.innerText = '🎲 随机抽选';
@@ -449,6 +469,7 @@ function createMoreMenu() {
   menu.appendChild(importItem);
   menu.appendChild(exportItem);
   menu.appendChild(layoutItem);
+  menu.appendChild(quickOperationItem);
   menu.appendChild(randomItem);
   menu.appendChild(clearItem);
   menu.appendChild(zeroItem);
@@ -456,6 +477,10 @@ function createMoreMenu() {
   document.body.appendChild(menu);
   _moreMenuEl = menu;
   return menu;
+}
+
+function updateQuickOperationMenuItem(item = document.getElementById('more-quick-operation-item')) {
+  if (item) item.innerText = `${isQuickOperationEnabled() ? '✔' : '⚡'} 快速操作`;
 }
 
 function updateLayoutOptionByWidth() {
@@ -1154,6 +1179,12 @@ if (fileInput) {
 // ========== 操作 ==========
 function handleAddScore(index) {
   const students = loadStudents();
+  if (isQuickOperationEnabled()) {
+    students[index].score += 1;
+    saveStudents(students);
+    renderStudents();
+    return;
+  }
   const scoreStr = prompt(`➕ 为【${students[index].name}】加分，请输入加分值：`);
   if (scoreStr === null) return;
   const score = parseFloat(scoreStr);
@@ -1168,6 +1199,12 @@ function handleAddScore(index) {
 
 function handleMinusScore(index) {
   const students = loadStudents();
+  if (isQuickOperationEnabled()) {
+    students[index].score -= 1;
+    saveStudents(students);
+    renderStudents();
+    return;
+  }
   const scoreStr = prompt(`➖ 为【${students[index].name}】扣分，请输入扣分值：`);
   if (scoreStr === null) return;
   const score = parseFloat(scoreStr);

@@ -678,7 +678,7 @@ body.search-opened #search-bar {
   background: transparent;
   border-radius: 0;
   color: var(--text-color);
-  gap: 12px;
+
   min-height: 52px;
 }
 
