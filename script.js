@@ -106,8 +106,6 @@ function migratePersistentState() {
 migrateClassData();
 migratePersistentState();
 
-const aboutInfo = '本项目基于ScoringPad构建。ScoringPad,Score anytime,score more！\nGithub repo:https://github.com/RMDCXY/ScoringPad \n本项目使用vibe coding实现。\n当前ScoringPad版本：1.6';
-
 function hasDismissedNotice() {
   return document.cookie.split('; ').some(cookie => cookie.startsWith(`${noticeCookieName}=`));
 }
@@ -479,7 +477,7 @@ function createMoreMenu() {
   if (_moreMenuEl) return _moreMenuEl;
   const menu = document.createElement('div');
   menu.id = 'more-menu';
-  // 添加学生 / 批量添加 / 导入 / 导出（与页面原按钮功能一致，移入更多菜单）
+  // 更多菜单中的操作顺序与界面顺序保持一致
   const addItem = document.createElement('div');
   addItem.className = 'more-item';
   addItem.innerText = '🧑 添加学生';
@@ -531,33 +529,24 @@ function createMoreMenu() {
   settingsItem.innerText = '⚙️ 设置';
   settingsItem.addEventListener('click', (e) => { e.stopPropagation(); showSettingsPage(); });
 
-  // 原有的清零/关于项
+  // 清零项
   const zeroItem = document.createElement('div');
   zeroItem.className = 'more-item';
-  zeroItem.innerText = '↻ 一键清零';
+  zeroItem.innerText = '🔄 一键清零';
   zeroItem.addEventListener('click', (e) => {
     e.stopPropagation();
     handleResetAllScores();
   });
 
-  const aboutItem = document.createElement('div');
-  aboutItem.className = 'more-item';
-  aboutItem.innerText = 'ⓘ 关于';
-  aboutItem.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleAbout();
-  });
-
   menu.appendChild(addItem);
   menu.appendChild(batchItem);
-  menu.appendChild(importItem);
-  menu.appendChild(exportItem);
   menu.appendChild(layoutItem);
   menu.appendChild(quickOperationItem);
   menu.appendChild(randomItem);
-  menu.appendChild(settingsItem);
+  menu.appendChild(importItem);
+  menu.appendChild(exportItem);
   menu.appendChild(zeroItem);
-  menu.appendChild(aboutItem);
+  menu.appendChild(settingsItem);
   document.body.appendChild(menu);
   _moreMenuEl = menu;
   return menu;
@@ -788,10 +777,6 @@ function selectClass(cls) {
   }
 }
 
-function handleAbout() {
-  closeMoreMenu();
-  alert(aboutInfo);
-}
 function loadLayoutMode() {
   const mode = getCookie('studentLayoutMode');
   isTwoColumnLayout = mode === 'two';
