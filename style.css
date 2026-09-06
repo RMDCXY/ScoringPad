@@ -1,6 +1,6 @@
 :root {
   --bg-color: #ffffff;
-  --text-color: #292929;
+  --text-color: #4a4a4a;
   --card-bg: #ffffff;
   --border-color: #eeeeee;
   --menu-border: rgba(0,0,0,0.18);
@@ -35,7 +35,7 @@
   --border-color: #333333;
   --menu-border: rgba(255,255,255,0.16);
   --menu-bg: rgba(0,0,0,0.06);
-  --page-overlay: rgba(0,0,0,0.18);
+  --page-overlay: rgba(0,0,0,0.30);
   --notice-bg: #2c281a;
   --notice-border: #b08800;
   --shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -403,15 +403,19 @@ body.search-opened #search-bar {
 /* 管理页面 */
 #dashboard-page,
 #leaderboard-page,
-#random-pick-page {
+#random-pick-page,
+#settings-page {
   max-width: 800px;
   margin: 0 auto;
-  background: var(--card-bg);
+  background: var(--page-overlay);
+  border: 1px solid var(--menu-border);
   padding: 15px;
   padding-top:10px;
   margin-top:30px;
   border-radius: 10px;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 #dashboard-page h1,
@@ -426,9 +430,9 @@ body.search-opened #search-bar {
 .notice {
   position: relative;
   /* 半透明 + 毛玻璃，使背景可见同时增强可读性 */
-  background-color: rgba(255,248,225,0.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background-color: rgba(255,248,225,0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: 15px 35px 15px 15px;
   border-left: 5px solid var(--notice-border);
   margin-bottom: 20px;
@@ -555,9 +559,9 @@ body.search-opened #search-bar {
 
 /* 深色主题下的提示背景为半透明暗色，保持可读性并保留模糊 */
 [data-theme="dark"] .notice {
-  background-color: rgba(44,40,26,0.68);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background-color: rgba(44,40,26,0.38);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .close-btn {
@@ -660,7 +664,7 @@ body.search-opened #search-bar {
   display: flex;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
   color: var(--text-color);
 }
 
@@ -674,7 +678,7 @@ body.search-opened #search-bar {
   display: flex;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
   background: transparent;
   border-radius: 0;
   color: var(--text-color);
@@ -857,7 +861,7 @@ body.search-opened #search-bar {
   justify-content: space-between;
   padding: 10px 0;
   font-size: 18px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
 }
 
 .rank {
@@ -873,3 +877,165 @@ body.search-opened #search-bar {
   color: var(--score-color);
   font-weight: bold;
 }
+
+.settings-section,
+.access-lock-card,
+.settings-page-container {
+  background: var(--page-overlay);
+  border: 1px solid var(--menu-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.settings-section {
+  padding: 10px;
+  margin: 0 auto 10px;
+  max-width: 760px;
+}
+
+.settings-page-container {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.settings-page-container > h1 {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.settings-section h2 {
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.settings-inline-row,
+.settings-password-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#background-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.file-select-button {
+  display: inline-block;
+  padding: 8px 10px;
+  border: 1px solid var(--menu-border);
+  border-radius: 4px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.settings-password-row {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.confirm-password-row {
+  display: flex;
+  align-items: center;
+}
+
+#old-password-input,
+#new-password-input,
+#confirm-password-input {
+  display: block;
+  box-sizing: border-box;
+  flex: 0 0 120px;
+  width: 200px;
+  height: 39px;
+  min-width: 200px;
+  max-width: 200px;
+  min-height: 39px;
+  max-height: 39px;
+  margin: 0;
+  padding: 0 6px;
+  border: 1px solid var(--menu-border);
+  border-radius: 4px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font: 15px "Microsoft YaHei", sans-serif;
+}
+
+#set-password-btn {
+  display: block;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: 65px;
+  height: 39px;
+  min-height: 39px;
+  margin: 0 0 0 10px;
+  padding: 0 8px;
+  border: 1px solid var(--menu-border);
+  border-radius: 4px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font: 15px "Microsoft YaHei", sans-serif;
+  cursor: pointer;
+}
+
+#set-password-btn:hover {
+  background: var(--icon-bg-hover);
+}
+
+.confirm-password-row button {
+  margin-left: 10px;
+}
+
+.settings-section input,
+.settings-section button,
+.access-lock-card input,
+.access-lock-card button {
+  padding: 8px 10px;
+  border: 1px solid var(--menu-border);
+  border-radius: 4px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font: inherit;
+}
+
+.settings-section button,
+.access-lock-card button { cursor: pointer; }
+.settings-section button:hover,
+.access-lock-card button:hover { background: var(--icon-bg-hover); }
+
+.access-lock {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: var(--page-overlay);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.access-lock-card {
+  width: min(420px, calc(100% - 40px));
+  padding: 28px;
+  text-align: center;
+}
+
+.access-lock-card h1 { margin-bottom: 18px; }
+.access-lock-card p { margin-bottom: 16px; }
+.access-lock-card input { width: 100%; margin-bottom: 16px; }
+.access-lock-actions { display: flex; justify-content: center; gap: 10px; }
+
+a{color:#00aeff;transition: color 0.2s ease;}
+a:hover{color:#0051ff}

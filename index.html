@@ -6,7 +6,7 @@
 /\__/ /| (__ | (_) || |   | || | | || (_| || |    | (_| || (_| |
 \____/  \___| \___/ |_|   |_||_| |_| \___ |\_|     \____| \____|
                                       __/ |                     
-                                     |___/   Version 1.1
+                                     |___/   Version 2.6
 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -15,6 +15,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ScoringPad</title>
   <link rel="stylesheet" href="style.css" />
+  <!--图标-->
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="ScoringPad" />
+  <link rel="manifest" href="/favicon/site.webmanifest" />
   <!-- 引入 html2canvas 用于截屏 -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
@@ -72,6 +79,71 @@
       <div id="pick-student-list" class="pick-student-list hidden"></div>
       <button id="start-random-pick" class="btn-yellow" type="button">开始抽选</button>
       <div id="random-pick-result" class="random-pick-result hidden" aria-live="polite"><span id="random-pick-result-text"></span></div>
+    </div>
+  </div>
+
+  <div id="settings-page" class="page hidden">
+    <div class="settings-page-container">
+      <div class="leaderboard-header">
+        <button id="settings-back-btn" class="btn-blue">← 返回</button>
+      </div>
+      <h1>⚙️ 设置</h1>
+      <div class="settings-section">
+        <h2>🖼️ 背景图片</h2>
+        <div class="settings-inline-row">
+          <input id="background-file-input" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" />
+          <label for="background-file-input" class="file-select-button">选择文件</label>
+          <span id="background-file-name"></span>
+          <button id="remove-background-btn" type="button">移除背景图片</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h2>🔒 访问密码</h2>
+        <div class="settings-password-row">
+          <input id="old-password-input" type="password" placeholder="原密码" />
+          <input id="new-password-input" type="password" placeholder="新密码" />
+          <div class="confirm-password-row">
+            <input id="confirm-password-input" type="password" placeholder="确认新密码" />
+            <button id="set-password-btn" type="button">设置</button>
+          </div>
+          <span>若当前没有密码，或者想要清空密码，只需要将对应输入框留空设置即可。</span>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h2>📁 数据管理</h2>
+        <div class="settings-inline-row">
+          <button id="clear-cookies-btn" type="button">清除 Cookies</button>
+          <button id="settings-clear-data-btn" type="button">清空数据</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h2>ⓘ 关于</h2>
+        <div style="display: flex; align-items: flex-start; justify-content: center;">
+          <img src="logo.svg" width="65px" style="margin-top: 0;">
+          <div style="display: flex; flex-direction: column; margin-left: 15px;">
+            <h1 style="margin: 0;line-height:1.2;">ScoringPad</h1>
+            <div style="display: flex; align-items: center; gap: 8px;margin-top: 5px;">
+              <i style="font-style: italic; font-size: 15px; color: #cccbcb;">随时记，记更多</i><h5>V2.6</h5>
+            </div>
+            
+          </div>
+        </div>
+        <div align="center" style="margin-top: 10px;">
+          <span>项目仓库: </span><a href="https://github.com/RMDCXY/ScoringPad" target="_blank">https://github.com/RMDCXY/ScoringPad</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="access-lock" class="access-lock hidden">
+    <div class="access-lock-card">
+      <h1>ScoringPad</h1>
+      <p>请输入访问密码以继续操作</p>
+      <input id="access-password-input" type="password" placeholder="访问密码" />
+      <div class="access-lock-actions">
+        <button id="readonly-access-btn" type="button">只读访问</button>
+        <button id="continue-access-btn" type="button">继续　→</button>
+      </div>
     </div>
   </div>
 

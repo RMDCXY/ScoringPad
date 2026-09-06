@@ -6,6 +6,7 @@ const classToggle = document.getElementById('class-toggle');
 const dashboardPage = document.getElementById('dashboard-page');
 const leaderboardPage = document.getElementById('leaderboard-page');
 const randomPickPage = document.getElementById('random-pick-page');
+const settingsPage = document.getElementById('settings-page');
 const addStudentBtn = document.getElementById('add-student-btn');
 const batchAddBtn = document.getElementById('batch-add-btn');
 const importCsvBtn = document.getElementById('import-csv-btn');
@@ -13,6 +14,7 @@ const exportCsvBtn = document.getElementById('export-csv-btn');
 const leaderboardBtn = document.getElementById('leaderboard-btn');
 const backBtn = document.getElementById('back-btn');
 const randomPickBackBtn = document.getElementById('random-pick-back-btn');
+const settingsBackBtn = document.getElementById('settings-back-btn');
 const screenshotBtn = document.getElementById('screenshot-btn');
 const studentsList = document.getElementById('students-list');
 const rankedList = document.getElementById('ranked-list');
@@ -27,11 +29,84 @@ const randomPickResultText = document.getElementById('random-pick-result-text');
 const closeNoticeBtn = document.getElementById('close-notice');
 const dismissNoticeBtn = document.getElementById('dismiss-notice');
 const fileInput = document.getElementById('file-input');
+const backgroundFileInput = document.getElementById('background-file-input');
+const backgroundFileName = document.getElementById('background-file-name');
+const removeBackgroundBtn = document.getElementById('remove-background-btn');
+const setPasswordBtn = document.getElementById('set-password-btn');
+const clearCookiesBtn = document.getElementById('clear-cookies-btn');
+const settingsClearDataBtn = document.getElementById('settings-clear-data-btn');
+const accessLock = document.getElementById('access-lock');
+const accessPasswordInput = document.getElementById('access-password-input');
+const readonlyAccessBtn = document.getElementById('readonly-access-btn');
+const continueAccessBtn = document.getElementById('continue-access-btn');
+
+const passwordStorageKey = 'scoringpad_password_crc32';
+const backgroundStorageKey = 'scoringpad_background_image';
+let isReadOnlyAccess = false;
 
 const noticeCookieName = 'scoringpad_notice_dismissed';
 const quickOperationCookieName = 'scoringpad_quick_operation';
+const persistentStateCookieOptions = '; max-age=31536000; path=/; SameSite=Lax';
 
-const aboutInfo = '本项目基于ScoringPad构建。ScoringPad,Score anytime,score more！\nGithub repo:https://github.com/RMDCXY/ScoringPad \n本项目使用vibe coding实现。\n当前ScoringPad版本：1.';
+function getCookie(name) {
+  const prefix = `${name}=`;
+  const cookie = document.cookie.split('; ').find(item => item.startsWith(prefix));
+  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
+}
+
+function setCookie(name, value) {
+  document.cookie = `${name}=${encodeURIComponent(value)}${persistentStateCookieOptions}`;
+}
+
+function removeCookie(name) {
+  document.cookie = `${name}=; max-age=0; path=/; SameSite=Lax`;
+}
+
+function crc32(value) {
+  let crc = 0 ^ (-1);
+  for (let index = 0; index < value.length; index += 1) {
+    crc ^= value.charCodeAt(index);
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+  }
+  return (crc ^ (-1)) >>> 0;
+}
+
+function hasAccessPassword() { return localStorage.getItem(passwordStorageKey) !== null; }
+
+function updateDocumentTitle() {
+  document.title = isReadOnlyAccess ? '(只读访问)ScoringPad' : 'ScoringPad';
+}
+
+function canModifyData() {
+  if (!isReadOnlyAccess) return true;
+  if (!confirm('当前为只读访问，无法操作。是否刷新验证密码继续操作？')) return false;
+  location.reload();
+  return false;
+}
+
+function migrateClassData() {
+  const localClasses = localStorage.getItem('classes');
+  const cookieClasses = getCookie('classes');
+  if (localClasses === null && cookieClasses !== null) {
+    localStorage.setItem('classes', cookieClasses);
+  }
+  if (cookieClasses !== null) removeCookie('classes');
+}
+
+function migratePersistentState() {
+  ['currentClass', 'theme', 'studentLayoutMode'].forEach(key => {
+    const value = localStorage.getItem(key);
+    if (value !== null) {
+      setCookie(key, value);
+      localStorage.removeItem(key);
+    }
+  });
+}
+
+migrateClassData();
+migratePersistentState();
+
+const aboutInfo = '本项目基于ScoringPad构建。ScoringPad,Score anytime,score more！\nGithub repo:https://github.com/RMDCXY/ScoringPad \n本项目使用vibe coding实现。\n当前ScoringPad版本：1.6';
 
 function hasDismissedNotice() {
   return document.cookie.split('; ').some(cookie => cookie.startsWith(`${noticeCookieName}=`));
@@ -157,7 +232,7 @@ function renameClass(oldName, newName) {
   // update currentClass if needed
   if (currentClass === oldName) {
     currentClass = newName;
-    localStorage.setItem('currentClass', currentClass);
+    setCookie('currentClass', currentClass);
   }
   return true;
 }
@@ -175,7 +250,7 @@ function deleteClassByName(name) {
   // adjust currentClass
   if (currentClass === name) {
     currentClass = classes[0];
-    localStorage.setItem('currentClass', currentClass);
+    setCookie('currentClass', currentClass);
   }
   return true;
 }
@@ -188,12 +263,12 @@ function updateThemeIcon() {
 
 function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme);
+  setCookie('theme', theme);
   updateThemeIcon();
 }
 
 function getPreferredTheme() {
-  const saved = localStorage.getItem('theme');
+  const saved = getCookie('theme');
   if (saved) return saved;
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
@@ -259,6 +334,7 @@ function showDashboardPage() {
   dashboardPage.classList.remove('hidden');
   leaderboardPage.classList.add('hidden');
   randomPickPage.classList.add('hidden');
+  settingsPage.classList.add('hidden');
   renderStudents();
 }
 
@@ -267,6 +343,7 @@ function showLeaderboardPage() {
   dashboardPage.classList.add('hidden');
   leaderboardPage.classList.remove('hidden');
   randomPickPage.classList.add('hidden');
+  settingsPage.classList.add('hidden');
   renderLeaderboard();
 }
 
@@ -275,9 +352,19 @@ function showRandomPickPage() {
   dashboardPage.classList.add('hidden');
   leaderboardPage.classList.add('hidden');
   randomPickPage.classList.remove('hidden');
+  settingsPage.classList.add('hidden');
   renderPickStudents();
   updatePickCount();
   randomPickResult.classList.add('hidden');
+}
+
+function showSettingsPage() {
+  closeMoreMenu();
+  dashboardPage.classList.add('hidden');
+  leaderboardPage.classList.add('hidden');
+  randomPickPage.classList.add('hidden');
+  settingsPage.classList.remove('hidden');
+  updateBackgroundName();
 }
 
 // ========== 搜索功能 ==========
@@ -439,15 +526,12 @@ function createMoreMenu() {
   randomItem.innerText = '🎲 随机抽选';
   randomItem.addEventListener('click', (e) => { e.stopPropagation(); showRandomPickPage(); closeMoreMenu(); });
 
-  // 原有的清空/清零/关于项
-  const clearItem = document.createElement('div');
-  clearItem.className = 'more-item';
-  clearItem.innerText = '🗑️ 清空数据';
-  clearItem.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleClearData();
-  });
+  const settingsItem = document.createElement('div');
+  settingsItem.className = 'more-item';
+  settingsItem.innerText = '⚙️ 设置';
+  settingsItem.addEventListener('click', (e) => { e.stopPropagation(); showSettingsPage(); });
 
+  // 原有的清零/关于项
   const zeroItem = document.createElement('div');
   zeroItem.className = 'more-item';
   zeroItem.innerText = '↻ 一键清零';
@@ -471,7 +555,7 @@ function createMoreMenu() {
   menu.appendChild(layoutItem);
   menu.appendChild(quickOperationItem);
   menu.appendChild(randomItem);
-  menu.appendChild(clearItem);
+  menu.appendChild(settingsItem);
   menu.appendChild(zeroItem);
   menu.appendChild(aboutItem);
   document.body.appendChild(menu);
@@ -600,6 +684,7 @@ function openClassMenu() {
     renameBtn.innerText = '🖊';
     renameBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (!canModifyData()) return;
       const newName = prompt(`✏ 请输入班级新名称：`, cls);
       if (!newName) return;
       if (newName.trim() === cls) return;
@@ -645,6 +730,7 @@ function openClassMenu() {
   createDiv.innerText = '➕ 创建班级';
   createDiv.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (!canModifyData()) return;
     const name = prompt('➕ 请输入新班级名称：');
     if (!name) return;
     const ok = addClass(name);
@@ -654,7 +740,7 @@ function openClassMenu() {
     }
     // 切换到新班级
     currentClass = name.trim();
-    localStorage.setItem('currentClass', currentClass);
+    setCookie('currentClass', currentClass);
     closeClassMenu();
     if (!dashboardPage.classList.contains('hidden')) renderStudents();
     if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
@@ -692,7 +778,7 @@ function _docClickCloseClass(ev) {
 function selectClass(cls) {
   if (currentClass !== cls) {
     currentClass = cls;
-    localStorage.setItem('currentClass', cls);
+    setCookie('currentClass', cls);
     closeClassMenu();
     if (!dashboardPage.classList.contains('hidden')) renderStudents();
     if (!leaderboardPage.classList.contains('hidden')) renderLeaderboard();
@@ -707,12 +793,12 @@ function handleAbout() {
   alert(aboutInfo);
 }
 function loadLayoutMode() {
-  const mode = localStorage.getItem('studentLayoutMode');
+  const mode = getCookie('studentLayoutMode');
   isTwoColumnLayout = mode === 'two';
 }
 
 function saveLayoutMode() {
-  localStorage.setItem('studentLayoutMode', isTwoColumnLayout ? 'two' : 'single');
+  setCookie('studentLayoutMode', isTwoColumnLayout ? 'two' : 'single');
 }
 
 function updateStudentListLayout() {
@@ -756,6 +842,7 @@ function generateConfirmCode() {
 }
 
 async function handleClearData() {
+  if (!canModifyData()) return;
   closeMoreMenu();
   const ok = confirm('⚠确认清除所有班级的所有学生记分数据吗？清除之后将无法恢复！');
   if (!ok) return;
@@ -782,9 +869,9 @@ async function handleClearData() {
     }
     toRemove.forEach(k => localStorage.removeItem(k));
 
-    // 2) 删除 classes 与 currentClass 等会话数据
+    // 2) 删除班级列表与当前班级选择
     localStorage.removeItem('classes');
-    localStorage.removeItem('currentClass');
+    removeCookie('currentClass');
 
     // 3) 为保持当前会话可用，重置内存中的 classes/currentClass 为默认值（但不立即持久化）
     classes = ['班级1'];
@@ -802,7 +889,7 @@ async function handleClearData() {
 }
 
 function handleDeleteClassUI(cls) {
-  // 删除单个班级（含其学生数据），使用同样的多步骤确认
+  if (!canModifyData()) return;
   closeClassMenu();
   const ok = confirm(`⚠ 确定要删除班级【${cls}】及其所有学生数据吗？此操作不可逆！`);
   if (!ok) return;
@@ -824,6 +911,7 @@ function handleDeleteClassUI(cls) {
 }
 
 function handleResetAllScores() {
+  if (!canModifyData()) return;
   closeMoreMenu();
   const ok = confirm('⚠ 确定要清零该班级所有学生记分吗？该操作会将所有学生的分数清除为0，但学生姓名仍然会保留。清零后将无法恢复！');
   if (!ok) return;
@@ -876,6 +964,7 @@ function renderStudents(filter) {
 
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'student-actions';
+    if (isReadOnlyAccess) actionsDiv.classList.add('hidden');
 
     const addBtn = document.createElement('button');
     addBtn.className = 'add-btn';
@@ -953,6 +1042,7 @@ function renderLeaderboard() {
 // ========== 功能 ==========
 // 将页面操作抽成可复用函数，菜单和（若存在）原按钮都会调用
 function addStudentUI() {
+  if (!canModifyData()) return;
   const name = prompt('👦请输入学生姓名：');
   if (name && name.trim()) {
     const students = loadStudents();
@@ -963,6 +1053,7 @@ function addStudentUI() {
 }
 
 function batchAddUI() {
+  if (!canModifyData()) return;
   const input = prompt('🏫 请输入所有需要批量添加的学生姓名，可用中文逗号“，”、顿号“、”或英文逗号“,”分隔：');
   if (!input) return;
   const names = input.split(/[,，、]/).map(n => n.trim()).filter(n => n !== '');
@@ -1089,6 +1180,7 @@ if (advancedPick) advancedPick.addEventListener('change', () => {
 if (startRandomPick) startRandomPick.addEventListener('click', runRandomPick);
 
 function exportCsvAction() {
+  if (!canModifyData()) return;
   const students = loadStudents();
   if (students.length === 0) {
     alert('❌ 没有学生数据可导出！');
@@ -1114,6 +1206,7 @@ function exportCsvAction() {
 }
 
 function importCsvAction() {
+  if (!canModifyData()) return;
   // 利用页面的隐藏 file input
   if (fileInput) fileInput.click();
 }
@@ -1178,6 +1271,7 @@ if (fileInput) {
 
 // ========== 操作 ==========
 function handleAddScore(index) {
+  if (!canModifyData()) return;
   const students = loadStudents();
   if (isQuickOperationEnabled()) {
     students[index].score += 1;
@@ -1198,6 +1292,7 @@ function handleAddScore(index) {
 }
 
 function handleMinusScore(index) {
+  if (!canModifyData()) return;
   const students = loadStudents();
   if (isQuickOperationEnabled()) {
     students[index].score -= 1;
@@ -1218,6 +1313,7 @@ function handleMinusScore(index) {
 }
 
 function handleResetScore(index) {
+  if (!canModifyData()) return;
   if (confirm('⚠ 确定要将该学生的分数清零吗？')) {
     const students = loadStudents();
     students[index].score = 0;
@@ -1227,6 +1323,7 @@ function handleResetScore(index) {
 }
 
 function handleDeleteStudent(index) {
+  if (!canModifyData()) return;
   if (confirm('⚠ 确定要删除该学生及其所有记录吗？')) {
     const students = loadStudents();
     students.splice(index, 1);
@@ -1299,6 +1396,87 @@ if (dismissNoticeBtn) {
 if (leaderboardBtn) leaderboardBtn.addEventListener('click', showLeaderboardPage);
 if (backBtn) backBtn.addEventListener('click', showDashboardPage);
 if (randomPickBackBtn) randomPickBackBtn.addEventListener('click', showDashboardPage);
+if (settingsBackBtn) settingsBackBtn.addEventListener('click', showDashboardPage);
+
+function updateBackgroundName() {
+  const stored = localStorage.getItem(backgroundStorageKey);
+  if (backgroundFileName) backgroundFileName.textContent = stored ? `已选择: ${stored.split('|')[0]}` : '未选择文件';
+}
+
+function applyBackgroundImage() {
+  const stored = localStorage.getItem(backgroundStorageKey);
+  document.body.style.backgroundImage = stored ? `url("${stored.split('|').slice(1).join('|')}")` : '';
+}
+
+if (backgroundFileInput) backgroundFileInput.addEventListener('change', (event) => {
+  if (!canModifyData()) return;
+  const file = event.target.files[0];
+  if (!file || !/\.(png|jpe?g|webp)$/i.test(file.name)) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    localStorage.setItem(backgroundStorageKey, `${file.name}|${reader.result}`);
+    applyBackgroundImage();
+    updateBackgroundName();
+  };
+  reader.readAsDataURL(file);
+});
+if (removeBackgroundBtn) removeBackgroundBtn.addEventListener('click', () => {
+  if (!canModifyData()) return;
+  localStorage.removeItem(backgroundStorageKey);
+  backgroundFileInput.value = '';
+  applyBackgroundImage();
+  updateBackgroundName();
+});
+if (setPasswordBtn) setPasswordBtn.addEventListener('click', () => {
+  const oldPassword = document.getElementById('old-password-input').value;
+  const newPassword = document.getElementById('new-password-input').value;
+  const confirmPassword = document.getElementById('confirm-password-input').value;
+  if (hasAccessPassword() && String(crc32(oldPassword)) !== localStorage.getItem(passwordStorageKey)) {
+    alert('❌ 原密码错误');
+    return;
+  }
+  if (newPassword !== confirmPassword) { alert('❌ 两次输入的新密码不一致'); return; }
+  if (newPassword) localStorage.setItem(passwordStorageKey, String(crc32(newPassword)));
+  else localStorage.removeItem(passwordStorageKey);
+  alert('✔ 访问密码设置完成');
+  location.reload();
+});
+if (clearCookiesBtn) clearCookiesBtn.addEventListener('click', () => {
+  if (!canModifyData() || !confirm('确定要清除所有 Cookies 吗？页面将刷新。')) return;
+  document.cookie.split(';').forEach(cookie => { document.cookie = `${cookie.split('=')[0].trim()}=; max-age=0; path=/`; });
+  alert('✔ Cookies 已清除，页面即将刷新。');
+  location.reload();
+});
+if (settingsClearDataBtn) settingsClearDataBtn.addEventListener('click', handleClearData);
+
+function initializeAccess() {
+  updateDocumentTitle();
+  applyBackgroundImage();
+  updateBackgroundName();
+  if (hasAccessPassword()) accessLock.classList.remove('hidden');
+}
+if (readonlyAccessBtn) readonlyAccessBtn.addEventListener('click', () => {
+  isReadOnlyAccess = true;
+  updateDocumentTitle();
+  accessLock.classList.add('hidden');
+  showDashboardPage();
+});
+if (continueAccessBtn) continueAccessBtn.addEventListener('click', () => {
+  if (String(crc32(accessPasswordInput.value)) !== localStorage.getItem(passwordStorageKey)) {
+    alert('❌ 密码错误');
+    return;
+  }
+  isReadOnlyAccess = false;
+  updateDocumentTitle();
+  accessLock.classList.add('hidden');
+  showDashboardPage();
+});
+if (accessPasswordInput) accessPasswordInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    continueAccessBtn.click();
+  }
+});
 
 window.addEventListener('resize', () => {
   updateStudentListLayout();
@@ -1310,17 +1488,18 @@ window.addEventListener('resize', () => {
 window.addEventListener('load', () => {
   // 恢复班级列表与选择
   loadClasses();
-  const savedClass = localStorage.getItem('currentClass');
+  const savedClass = getCookie('currentClass');
   if (savedClass && classes && classes.includes(savedClass)) {
     currentClass = savedClass;
   } else {
     // 默认第一个班级
     currentClass = classes && classes.length ? classes[0] : '班级1';
-    localStorage.setItem('currentClass', currentClass);
+    setCookie('currentClass', currentClass);
   }
   // 读取布局设置
   loadLayoutMode();
-  showDashboardPage();
+  initializeAccess();
+  if (!hasAccessPassword()) showDashboardPage();
   // 根据当前窗口宽度强制或恢复排列方式选项状态
   updateLayoutOptionByWidth();
 });

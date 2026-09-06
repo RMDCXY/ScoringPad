@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="235" height="235" viewBox="0 0 235 235" id="svg1" inkscape:version="1.4.3 (0d15f75, 2025-12-25)" sodipodi:docname="logo.svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><rdf:Description><dc:creator>RealFaviconGenerator</dc:creator><dc:source>https://realfavicongenerator.net</dc:source></rdf:Description></rdf:RDF></metadata><title id="title11">ScoringPad logo</title><sodipodi:namedview id="namedview1" pagecolor="#505050" bordercolor="#ffffff" borderopacity="1" inkscape:showpageshadow="0" inkscape:pageopacity="0" inkscape:pagecheckerboard="1" inkscape:deskcolor="#505050" inkscape:document-units="px" inkscape:zoom="1.2727922" inkscape:cx="191.31167" inkscape:cy="304.84159" inkscape:window-width="1920" inkscape:window-height="1001" inkscape:window-x="-9" inkscape:window-y="-9" inkscape:window-maximized="1" inkscape:current-layer="layer1"></sodipodi:namedview><defs id="defs1">
+    <linearGradient id="linearGradient16" inkscape:collect="always">
+      <stop style="stop-color:#0064f6;stop-opacity:1;" offset="0" id="stop16"></stop>
+      <stop style="stop-color:#00caff;stop-opacity:1;" offset="1" id="stop17"></stop>
+    </linearGradient>
+    <linearGradient id="linearGradient14" inkscape:collect="always">
+      <stop style="stop-color:#00caff;stop-opacity:1;" offset="0" id="stop14"></stop>
+      <stop style="stop-color:#0064f6;stop-opacity:1;" offset="1" id="stop15"></stop>
+    </linearGradient>
+    <linearGradient id="linearGradient12" inkscape:collect="always">
+      <stop style="stop-color:#0064f6;stop-opacity:1;" offset="0" id="stop12"></stop>
+      <stop style="stop-color:#00caff;stop-opacity:1;" offset="1" id="stop13"></stop>
+    </linearGradient>
+    <linearGradient id="linearGradient10" inkscape:collect="always">
+      <stop style="stop-color:#ff0000;stop-opacity:1;" offset="0" id="stop10"></stop>
+      <stop style="stop-color:#ff6f00;stop-opacity:1;" offset="1" id="stop11"></stop>
+    </linearGradient>
+    <linearGradient id="linearGradient6" inkscape:collect="always">
+      <stop style="stop-color:#00ff00;stop-opacity:1;" offset="0" id="stop6"></stop>
+      <stop style="stop-color:#1cbe13;stop-opacity:1;" offset="1" id="stop7"></stop>
+    </linearGradient>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient6" id="linearGradient7" x1="144.5" y1="238.05556" x2="217.77779" y2="238.05556" gradientUnits="userSpaceOnUse" gradientTransform="translate(-103.03803,-135.88889)"></linearGradient>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient10" id="linearGradient11" x1="224.16667" y1="237.5" x2="294.16666" y2="237.5" gradientUnits="userSpaceOnUse" gradientTransform="translate(-103.03803,-135.88889)"></linearGradient>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient12" id="linearGradient13" x1="151.09749" y1="197.04546" x2="291.40897" y2="337.35693" gradientUnits="userSpaceOnUse" gradientTransform="translate(-103.03803,-135.88889)"></linearGradient>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient14" id="linearGradient15" x1="168.44444" y1="168.38889" x2="276.22223" y2="168.38889" gradientUnits="userSpaceOnUse" gradientTransform="translate(-103.03803,-135.88889)"></linearGradient>
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient16" id="linearGradient17" x1="123.37282" y1="341.63092" x2="218.38779" y2="341.63092" gradientUnits="userSpaceOnUse" gradientTransform="translate(-103.03803,-135.88889)"></linearGradient>
+  </defs><g inkscape:label="图层 1" inkscape:groupmode="layer" id="layer1">
+    <path style="fill:none;fill-opacity:0.00434786;stroke:url(#linearGradient17);stroke-width:25;stroke-linecap:round;stroke-dasharray:none;paint-order:stroke fill markers" d="m 27.83479,205.74203 h 76.01496" id="path1" sodipodi:nodetypes="cc"></path>
+    <path style="fill:none;fill-opacity:0.00434786;stroke:url(#linearGradient13);stroke-width:25;stroke-linecap:round;stroke-dasharray:none;paint-order:stroke fill markers" d="M 104.28986,149.9001 H 43.75826 C 35.93691,149.9001 26.5,138.85604 26.5,130.64185 V 74.15417 c 0,-9.61227 11.42705,-17.30736 17.30736,-17.30736 h 148.26425 c 8.97705,0 17.85877,9.63157 17.85877,17.62654 v 54.89178 c 0,5.89699 -9.83717,18.5094 -18.50941,18.5094 h -37.5967 c -8.3941,0 -16.50327,9.35917 -16.50327,16.50327 v 41.39998" id="path2" sodipodi:nodetypes="cssssssssssc"></path>
+    <path style="fill:none;fill-opacity:0.00434786;stroke:url(#linearGradient15);stroke-width:25;stroke-linecap:round;stroke-dasharray:none;paint-order:stroke fill markers" d="m 72.90641,24.5 h 92.77778" id="path3" sodipodi:nodetypes="cc"></path>
+    <path style="display:inline;fill:none;fill-opacity:0.00434786;stroke:url(#linearGradient7);stroke-width:15;stroke-linecap:round;stroke-dasharray:none;paint-order:stroke fill markers" d="m 54.46197,102.16667 h 49.27778" id="path4" sodipodi:nodetypes="cc"></path>
+    <path style="fill:none;fill-opacity:0.00434786;stroke:url(#linearGradient11);stroke-width:15;stroke-linecap:round;stroke-dasharray:none;paint-order:stroke fill markers" d="m 134.12864,101.61111 h 48" id="path6" sodipodi:nodetypes="cc"></path>
+    <use x="0" y="0" xlink:href="#path4" id="use11" transform="rotate(90,78.239748,102.86111)" style="display:inline;stroke-width:15;stroke-dasharray:none"></use>
+  </g><metadata id="metadata11">
+    <rdf:rdf>
+      <cc:work rdf:about="">
+        <dc:title>ScoringPad logo</dc:title>
+      </cc:work>
+    </rdf:rdf>
+  </metadata></svg>
